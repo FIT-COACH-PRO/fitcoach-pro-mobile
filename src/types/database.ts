@@ -23,6 +23,7 @@ export type Profile = {
   phone_number: string | null
   phone_verified: boolean
   two_factor_channel: 'email' | 'sms'
+  push_token: string | null
   created_at: string
   updated_at: string
 }
