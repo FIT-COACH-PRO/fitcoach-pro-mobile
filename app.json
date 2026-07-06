@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "FitCoach Pro",
+    "slug": "fitcoach-pro",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "fitcoachpro",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0066FF"
+    },
+    "ios": {
+      "bundleIdentifier": "com.fitcoachpro.app",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCalendarsUsageDescription": "FitCoach precisa acessar sua agenda para sincronizar aulas.",
+        "NSCalendarsFullAccessUsageDescription": "FitCoach precisa acessar sua agenda para criar e remover aulas."
+      }
+    },
+    "android": {
+      "package": "com.fitcoachpro.app",
+      "versionCode": 1,
+      "permissions": [
+        "READ_CALENDAR",
+        "WRITE_CALENDAR",
+        "POST_NOTIFICATIONS"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "FitCoach precisa acessar sua agenda para sincronizar aulas."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#0066FF"
+        }
+      ],
+      [
+        "expo-secure-store"
+      ]
+    ],
+    "extra": {
+      "apiUrl": "${EXPO_PUBLIC_API_URL}"
+    }
+  }
+}
