@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { useAuth } from '../hooks/useAuth';
 
@@ -20,6 +20,11 @@ export function LoginScreen() {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={require('../../assets/icon.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
       <Text variant="headlineMedium" style={styles.title}>
         FitCoach Pro
       </Text>
@@ -48,6 +53,7 @@ export function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', padding: 24, gap: 12 },
+  logo: { width: 104, height: 104, borderRadius: 24, alignSelf: 'center', marginBottom: 8 },
   title: { textAlign: 'center', marginBottom: 24, fontWeight: 'bold' },
   input: { marginBottom: 4 },
   button: { marginTop: 12 },
