@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { Text, Card, ActivityIndicator } from 'react-native-paper';
 import { getDashboardStats } from '../api/endpoints';
 import type { DashboardStats } from '../types/database';
@@ -7,19 +7,35 @@ import type { DashboardStats } from '../types/database';
 export function HomeScreen() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    getDashboardStats()
-      .then(setStats)
-      .catch((e) => setError(String(e?.message ?? e)))
-      .finally(() => setLoading(false));
+  const load = useCallback(async () => {
+    try {
+      setError(null);
+      setStats(await getDashboardStats());
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
   }, []);
+
+  useEffect(() => {
+    load().finally(() => setLoading(false));
+  }, [load]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }, [load]);
 
   if (loading) return <ActivityIndicator style={styles.center} />;
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
       <Text variant="headlineSmall" style={styles.title}>
         Resumo
       </Text>

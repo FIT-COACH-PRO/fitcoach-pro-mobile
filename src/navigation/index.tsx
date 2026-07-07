@@ -1,4 +1,8 @@
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  NavigationContainer,
+  DefaultTheme,
+  DarkTheme,
+} from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { List } from 'react-native-paper';
 import { HomeScreen } from '../screens/HomeScreen';
@@ -7,9 +11,9 @@ import { SettingsScreen } from '../screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 
-export function AppNavigator() {
+export function AppNavigator({ dark = false }: { dark?: boolean }) {
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={dark ? DarkTheme : DefaultTheme}>
       <Tab.Navigator screenOptions={{ headerTitleAlign: 'center' }}>
         <Tab.Screen
           name="Início"
