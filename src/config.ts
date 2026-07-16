@@ -9,10 +9,14 @@ function required(value: string | undefined, name: string): string {
 }
 
 // EXPO_PUBLIC_* ficam disponíveis em process.env no bundle do Expo.
-export const API_URL = required(
-  process.env.EXPO_PUBLIC_API_URL ?? (Constants.expoConfig?.extra?.apiUrl as string | undefined),
-  'EXPO_PUBLIC_API_URL'
-).replace(/\/$/, '');
-
-export const SUPABASE_URL = required(process.env.EXPO_PUBLIC_SUPABASE_URL, 'EXPO_PUBLIC_SUPABASE_URL');
-export const SUPABASE_ANON_KEY = required(process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY, 'EXPO_PUBLIC_SUPABASE_ANON_KEY');
+// O app fala direto com o Supabase (RLS por trainer_id); não há mais backend Next.js.
+export const SUPABASE_URL = required(
+  process.env.EXPO_PUBLIC_SUPABASE_URL ??
+    (Constants.expoConfig?.extra?.supabaseUrl as string | undefined),
+  'EXPO_PUBLIC_SUPABASE_URL'
+);
+export const SUPABASE_ANON_KEY = required(
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ??
+    (Constants.expoConfig?.extra?.supabaseAnonKey as string | undefined),
+  'EXPO_PUBLIC_SUPABASE_ANON_KEY'
+);
