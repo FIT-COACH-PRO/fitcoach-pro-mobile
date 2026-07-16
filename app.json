@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
+      "backgroundColor": "#EDE1C9"
     },
     "ios": {
       "bundleIdentifier": "com.fitcoachpro.app",
@@ -26,7 +26,7 @@
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
+        "backgroundColor": "#EDE1C9"
       },
       "permissions": [
         "READ_CALENDAR",
@@ -45,12 +45,13 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#0066FF"
+          "color": "#C2410C"
         }
       ],
       [
         "expo-secure-store"
-      ]
+      ],
+      "expo-asset"
     ],
     "extra": {
       "apiUrl": "${EXPO_PUBLIC_API_URL}"

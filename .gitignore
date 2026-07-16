@@ -13,3 +13,6 @@ web-build/
 *.orig.*
 ios/
 android/
+
+# Changelog local (não versionar)
+ATUALIZACOES.md

@@ -291,3 +291,11 @@ export type DashboardStats = {
   pending_payments: number
   upcoming_renewals: number
 }
+
+/** Aluno com assinatura vencendo na janela de renovação (ver lib/renewals.ts). */
+export type UpcomingRenewal = {
+  id: string
+  full_name: string
+  subscription_end: string
+  monthly_fee: number | null
+}

@@ -1,5 +1,11 @@
 import { api } from './client';
-import type { Student, Workout, Session, DashboardStats } from '../types/database';
+import type {
+  Student,
+  Workout,
+  Session,
+  DashboardStats,
+  UpcomingRenewal,
+} from '../types/database';
 
 /**
  * Camada fina de acesso às rotas /api do fitcoach-pro.
@@ -9,6 +15,12 @@ import type { Student, Workout, Session, DashboardStats } from '../types/databas
 
 export async function getDashboardStats(): Promise<DashboardStats> {
   const { data } = await api.get<DashboardStats>('/dashboard/stats');
+  return data;
+}
+
+/** Alunos com assinatura vencendo nos próximos 7 dias (seção da Home). */
+export async function listUpcomingRenewals(): Promise<UpcomingRenewal[]> {
+  const { data } = await api.get<UpcomingRenewal[]>('/dashboard/renewals');
   return data;
 }
 

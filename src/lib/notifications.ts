@@ -3,6 +3,7 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { registerPushToken } from '../api/endpoints';
+import { colors } from '../theme/colors';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -27,7 +28,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
       importance: Notifications.AndroidImportance.MAX,
-      lightColor: '#0066FF',
+      lightColor: colors.accent.base,
     });
   }
 
