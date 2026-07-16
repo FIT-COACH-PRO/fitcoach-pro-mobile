@@ -16,93 +16,97 @@ export type ThemeTokens = {
 export type AppTheme = MD3Theme & { tokens: ThemeTokens };
 
 /**
- * Tokens do modo escuro.
+ * Tokens do modo escuro — conforme o mockup dark (fundo quase preto, acento VERDE).
  *
- * ⚠️  Estes valores NÃO vêm da paleta oficial — ela é light-only (bege areia).
- * As superfícies/textos abaixo saem do MD3DarkTheme do Paper e as cores de marca
- * são versões clareadas das oficiais, só para manter contraste legível no escuro.
- * Quando a paleta escura oficial existir, é só trocar este bloco.
+ * ⚠️  Diferente do light, aqui o acento de ação é verde (não laranja). É intencional:
+ * o mockup dark usa verde para botões, FAB e aba ativa; o light usa laranja-brasa.
  */
 const darkTokens: ThemeTokens = {
   surface: {
-    page: MD3DarkTheme.colors.background,
-    card: MD3DarkTheme.colors.surface,
-    sunken: MD3DarkTheme.colors.surfaceVariant,
-    divider: MD3DarkTheme.colors.outlineVariant,
-    frame: colors.surface.frame,
+    page: '#0E0E10', // fundo do app — quase preto
+    card: '#1A1A1D', // cards e superfícies elevadas
+    sunken: '#26262A', // círculos de ícone, chips
+    divider: '#2C2C31', // linhas divisórias, borders sutis
+    frame: '#000000',
   },
   text: {
-    primary: MD3DarkTheme.colors.onSurface,
-    secondary: MD3DarkTheme.colors.onSurfaceVariant,
-    muted: MD3DarkTheme.colors.outline,
-    onDark: MD3DarkTheme.colors.onSurface,
-    onAccent: '#1F1B15',
+    primary: '#F4F4F5', // títulos, números
+    secondary: '#A1A1AA', // labels, datas, subtítulos
+    muted: '#6B6B72', // placeholder, desabilitado
+    onDark: '#F4F4F5',
+    onAccent: '#052012', // texto sobre o verde vivo
   },
   accent: {
-    base: '#F97316',
-    hover: '#FB8A3C',
-    pressed: '#EA6A0A',
-    subtle: '#4A2A14',
+    base: '#22C55E', // verde vivo — ação, CTA, item ativo
+    hover: '#16A34A',
+    pressed: '#15803D',
+    subtle: '#14331F', // background de badges/realces sutis
   },
   success: {
-    base: '#A3B565',
-    hover: '#B6C77C',
-    subtle: '#2E3520',
+    base: '#4ADE80', // valores, dinheiro — verde claro
+    hover: '#22C55E',
+    subtle: '#14331F',
   },
   warning: {
-    base: '#E0A64B',
-    subtle: '#3D2E14',
+    base: '#FBBF24', // pendências — âmbar
+    subtle: '#3A2A0E',
   },
   danger: {
-    base: '#EF6B6B',
-    hover: '#F58686',
-    subtle: '#3D1B1B',
+    base: '#F87171', // crítico/atrasado — vermelho
+    hover: '#EF4444',
+    subtle: '#3A1A1A',
   },
 };
 
 const lightTokens: ThemeTokens = colors;
 
+/** Mapeia os tokens semânticos nos slots de cor do MD3 (Paper). */
+function buildColors(base: MD3Theme, t: ThemeTokens): MD3Theme['colors'] {
+  return {
+    ...base.colors,
+    primary: t.accent.base,
+    onPrimary: t.text.onAccent,
+    primaryContainer: t.accent.subtle,
+    onPrimaryContainer: t.accent.hover,
+    secondary: t.success.base,
+    onSecondary: t.text.onDark,
+    secondaryContainer: t.success.subtle,
+    onSecondaryContainer: t.success.hover,
+    background: t.surface.page,
+    onBackground: t.text.primary,
+    surface: t.surface.card,
+    onSurface: t.text.primary,
+    surfaceVariant: t.surface.sunken,
+    onSurfaceVariant: t.text.secondary,
+    surfaceDisabled: t.surface.sunken,
+    onSurfaceDisabled: t.text.muted,
+    outline: t.surface.divider,
+    outlineVariant: t.surface.divider,
+    error: t.danger.base,
+    onError: t.text.onDark,
+    errorContainer: t.danger.subtle,
+    onErrorContainer: t.danger.hover,
+    elevation: {
+      ...base.colors.elevation,
+      level0: 'transparent',
+      level1: t.surface.card,
+      level2: t.surface.card,
+      level3: t.surface.card,
+      level4: t.surface.card,
+      level5: t.surface.card,
+    },
+  };
+}
+
 export const lightTheme: AppTheme = {
   ...MD3LightTheme,
-  colors: {
-    ...MD3LightTheme.colors,
-    primary: colors.accent.base,
-    onPrimary: colors.text.onAccent,
-    primaryContainer: colors.accent.subtle,
-    onPrimaryContainer: colors.accent.pressed,
-    secondary: colors.success.base,
-    onSecondary: colors.text.onDark,
-    secondaryContainer: colors.success.subtle,
-    onSecondaryContainer: colors.success.hover,
-    background: colors.surface.page,
-    onBackground: colors.text.primary,
-    surface: colors.surface.card,
-    onSurface: colors.text.primary,
-    surfaceVariant: colors.surface.sunken,
-    onSurfaceVariant: colors.text.secondary,
-    surfaceDisabled: colors.surface.sunken,
-    onSurfaceDisabled: colors.text.muted,
-    outline: colors.surface.divider,
-    outlineVariant: colors.surface.divider,
-    error: colors.danger.base,
-    onError: colors.text.onDark,
-    errorContainer: colors.danger.subtle,
-    onErrorContainer: colors.danger.hover,
-    elevation: {
-      ...MD3LightTheme.colors.elevation,
-      level0: 'transparent',
-      level1: colors.surface.card,
-      level2: colors.surface.card,
-      level3: colors.surface.card,
-      level4: colors.surface.card,
-      level5: colors.surface.card,
-    },
-  },
+  colors: buildColors(MD3LightTheme, lightTokens),
   tokens: lightTokens,
 };
 
 export const darkTheme: AppTheme = {
   ...MD3DarkTheme,
+  colors: buildColors(MD3DarkTheme, darkTokens),
   tokens: darkTokens,
 };
 

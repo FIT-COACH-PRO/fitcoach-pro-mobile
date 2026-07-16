@@ -1,13 +1,96 @@
-import { StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { List } from 'react-native-paper';
-import { HomeScreen } from '../screens/HomeScreen';
-import { WorkoutsScreen } from '../screens/WorkoutsScreen';
-import { SettingsScreen } from '../screens/SettingsScreen';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Icon } from 'react-native-paper';
 import { navigationTheme, type AppTheme } from '../theme';
+import type {
+  HomeStackParamList,
+  AlunosStackParamList,
+  TreinosStackParamList,
+  MaisStackParamList,
+  RootTabParamList,
+} from './types';
 
-const Tab = createBottomTabNavigator();
+import { HomeScreen } from '../screens/HomeScreen';
+import { NotificacoesScreen } from '../screens/NotificacoesScreen';
+import { AlunosListScreen } from '../screens/AlunosListScreen';
+import { AlunoDetalheScreen } from '../screens/AlunoDetalheScreen';
+import { WorkoutsScreen } from '../screens/WorkoutsScreen';
+import { TreinoDetalheScreen } from '../screens/TreinoDetalheScreen';
+import { AgendaScreen } from '../screens/AgendaScreen';
+import { MaisScreen } from '../screens/MaisScreen';
+import { FinanceiroScreen } from '../screens/FinanceiroScreen';
+import { ConfiguracoesScreen } from '../screens/ConfiguracoesScreen';
+import { ComunidadeScreen } from '../screens/ComunidadeScreen';
+
+const Tab = createBottomTabNavigator<RootTabParamList>();
+const HomeStack = createNativeStackNavigator<HomeStackParamList>();
+const AlunosStack = createNativeStackNavigator<AlunosStackParamList>();
+const TreinosStack = createNativeStackNavigator<TreinosStackParamList>();
+const MaisStack = createNativeStackNavigator<MaisStackParamList>();
+
+const stackOptions = { headerShown: false } as const;
+
+function HomeStackNav() {
+  return (
+    <HomeStack.Navigator screenOptions={stackOptions}>
+      <HomeStack.Screen name="Home" component={HomeScreen} />
+      <HomeStack.Screen name="Notificacoes">
+        {({ navigation }) => <NotificacoesScreen onBack={navigation.goBack} />}
+      </HomeStack.Screen>
+    </HomeStack.Navigator>
+  );
+}
+
+function AlunosStackNav() {
+  return (
+    <AlunosStack.Navigator screenOptions={stackOptions}>
+      <AlunosStack.Screen name="AlunosList" component={AlunosListScreen} />
+      <AlunosStack.Screen name="AlunoDetalhe" component={AlunoDetalheScreen} />
+    </AlunosStack.Navigator>
+  );
+}
+
+function TreinosStackNav() {
+  return (
+    <TreinosStack.Navigator screenOptions={stackOptions}>
+      <TreinosStack.Screen name="TreinosList" component={WorkoutsScreen} />
+      <TreinosStack.Screen name="TreinoDetalhe" component={TreinoDetalheScreen} />
+    </TreinosStack.Navigator>
+  );
+}
+
+function MaisStackNav() {
+  return (
+    <MaisStack.Navigator screenOptions={stackOptions}>
+      <MaisStack.Screen name="MaisHub" component={MaisScreen} />
+      <MaisStack.Screen name="Financeiro" component={FinanceiroScreen} />
+      <MaisStack.Screen name="Notificacoes">
+        {({ navigation }) => <NotificacoesScreen onBack={navigation.goBack} />}
+      </MaisStack.Screen>
+      <MaisStack.Screen name="Configuracoes" component={ConfiguracoesScreen} />
+      <MaisStack.Screen name="Comunidade">
+        {({ navigation }) => <ComunidadeScreen onBack={navigation.goBack} />}
+      </MaisStack.Screen>
+    </MaisStack.Navigator>
+  );
+}
+
+const TAB_ICON: Record<keyof RootTabParamList, string> = {
+  HomeTab: 'home',
+  AlunosTab: 'account-group',
+  TreinosTab: 'dumbbell',
+  AgendaTab: 'calendar-blank-outline',
+  MaisTab: 'dots-horizontal',
+};
+
+const TAB_LABEL: Record<keyof RootTabParamList, string> = {
+  HomeTab: 'Home',
+  AlunosTab: 'Alunos',
+  TreinosTab: 'Treinos',
+  AgendaTab: 'Agenda',
+  MaisTab: 'Mais',
+};
 
 export function AppNavigator({ theme }: { theme: AppTheme }) {
   const { tokens } = theme;
@@ -15,42 +98,25 @@ export function AppNavigator({ theme }: { theme: AppTheme }) {
   return (
     <NavigationContainer theme={navigationTheme(theme)}>
       <Tab.Navigator
-        screenOptions={{
-          headerTitleAlign: 'center',
-          headerStyle: {
-            backgroundColor: tokens.surface.page,
-            // divisor entre a nav bar e o conteúdo
-            borderBottomWidth: StyleSheet.hairlineWidth,
-            borderBottomColor: tokens.surface.divider,
-          },
-          headerShadowVisible: false,
-          headerTintColor: tokens.text.primary,
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarLabel: TAB_LABEL[route.name],
+          tabBarIcon: ({ color, size }) => (
+            <Icon source={TAB_ICON[route.name]} size={size} color={color} />
+          ),
           tabBarStyle: {
             backgroundColor: tokens.surface.page,
             borderTopColor: tokens.surface.divider,
           },
           tabBarActiveTintColor: tokens.accent.base,
           tabBarInactiveTintColor: tokens.text.secondary,
-        }}
+        })}
       >
-        <Tab.Screen
-          name="Início"
-          component={HomeScreen}
-          options={{
-            headerShown: false,
-            tabBarIcon: (p) => <List.Icon {...p} icon="home" />,
-          }}
-        />
-        <Tab.Screen
-          name="Treinos"
-          component={WorkoutsScreen}
-          options={{ tabBarIcon: (p) => <List.Icon {...p} icon="dumbbell" /> }}
-        />
-        <Tab.Screen
-          name="Config"
-          component={SettingsScreen}
-          options={{ tabBarIcon: (p) => <List.Icon {...p} icon="cog" /> }}
-        />
+        <Tab.Screen name="HomeTab" component={HomeStackNav} />
+        <Tab.Screen name="AlunosTab" component={AlunosStackNav} />
+        <Tab.Screen name="TreinosTab" component={TreinosStackNav} />
+        <Tab.Screen name="AgendaTab" component={AgendaScreen} />
+        <Tab.Screen name="MaisTab" component={MaisStackNav} />
       </Tab.Navigator>
     </NavigationContainer>
   );

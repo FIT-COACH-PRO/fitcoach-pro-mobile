@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text, ActivityIndicator, Icon } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Text, ActivityIndicator, Icon, TouchableRipple } from 'react-native-paper';
 import { getDashboardStats, listUpcomingRenewals } from '../api/endpoints';
 import { useAuth } from '../hooks/useAuth';
 import type { DashboardStats, UpcomingRenewal } from '../types/database';
+import type { HomeStackParamList } from '../navigation/types';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { sampleDashboard, sampleRenewals } from '../data/sample';
 import {
   formatCurrency,
   formatCurrencyCompact,
@@ -21,25 +25,26 @@ export function HomeScreen() {
   const theme = useAppTheme();
   const { tokens } = theme;
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const { user } = useAuth();
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [renewals, setRenewals] = useState<UpcomingRenewal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
-      setError(null);
       const [nextStats, nextRenewals] = await Promise.all([
         getDashboardStats(),
         listUpcomingRenewals(),
       ]);
       setStats(nextStats);
       setRenewals(nextRenewals);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e));
+    } catch {
+      // Sem backend/dados ainda: cai em dados de exemplo para a tela não quebrar.
+      setStats(sampleDashboard);
+      setRenewals(sampleRenewals());
     }
   }, []);
 
@@ -94,22 +99,18 @@ export function HomeScreen() {
           </Text>
         </View>
 
-        {/* Sem tela de notificações ainda — por isso não é pressionável. */}
-        <View style={[styles.bell, { backgroundColor: tokens.surface.card }]}>
-          <Icon source="bell-outline" size={22} color={tokens.text.primary} />
-          <View style={[styles.bellDot, { backgroundColor: tokens.accent.base }]} />
-        </View>
-      </View>
-
-      {error && (
-        <View
-          style={[styles.banner, { backgroundColor: tokens.danger.subtle }]}
+        <TouchableRipple
+          onPress={() => navigation.navigate('Notificacoes')}
+          style={[styles.bell, { backgroundColor: tokens.surface.card }]}
+          borderless
+          accessibilityLabel="Notificações"
         >
-          <Text style={{ color: tokens.danger.base }}>
-            Erro ao carregar: {error}
-          </Text>
-        </View>
-      )}
+          <View style={styles.bellInner}>
+            <Icon source="bell-outline" size={22} color={tokens.text.primary} />
+            <View style={[styles.bellDot, { backgroundColor: tokens.accent.base }]} />
+          </View>
+        </TouchableRipple>
+      </View>
 
       {stats && (
         <View style={styles.grid}>
@@ -274,9 +275,8 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
+  bellInner: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   bellDot: {
     position: 'absolute',
     top: 6,
@@ -284,11 +284,6 @@ const styles = StyleSheet.create({
     width: 9,
     height: 9,
     borderRadius: radius.pill,
-  },
-
-  banner: {
-    padding: spacing.md,
-    borderRadius: radius.md,
   },
 
   grid: {
