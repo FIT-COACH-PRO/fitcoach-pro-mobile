@@ -8,11 +8,14 @@ import { registerForPushNotifications } from './src/lib/notifications';
 import { AppNavigator } from './src/navigation';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { lightTheme, darkTheme } from './src/theme';
+import { ThemeModeProvider, useThemeMode } from './src/theme/ThemeMode';
 
-export default function App() {
+function Root() {
   const { user, loading } = useAuth();
+  const { mode } = useThemeMode();
   const scheme = useColorScheme();
-  const theme = scheme === 'dark' ? darkTheme : lightTheme;
+  const isDark = mode === 'system' ? scheme === 'dark' : mode === 'dark';
+  const theme = isDark ? darkTheme : lightTheme;
 
   useEffect(() => {
     if (user) {
@@ -21,19 +24,27 @@ export default function App() {
   }, [user]);
 
   return (
+    <PaperProvider theme={theme}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      {loading ? (
+        <View style={[styles.center, { backgroundColor: theme.colors.background }]}>
+          <ActivityIndicator color={theme.tokens.accent.base} />
+        </View>
+      ) : user ? (
+        <AppNavigator theme={theme} />
+      ) : (
+        <LoginScreen />
+      )}
+    </PaperProvider>
+  );
+}
+
+export default function App() {
+  return (
     <SafeAreaProvider>
-      <PaperProvider theme={theme}>
-        <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-        {loading ? (
-          <View style={[styles.center, { backgroundColor: theme.colors.background }]}>
-            <ActivityIndicator color={theme.tokens.accent.base} />
-          </View>
-        ) : user ? (
-          <AppNavigator theme={theme} />
-        ) : (
-          <LoginScreen />
-        )}
-      </PaperProvider>
+      <ThemeModeProvider>
+        <Root />
+      </ThemeModeProvider>
     </SafeAreaProvider>
   );
 }
