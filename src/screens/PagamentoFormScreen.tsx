@@ -5,6 +5,7 @@ import { TextInput, Text, TouchableRipple, ActivityIndicator } from 'react-nativ
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, ErrorState, EmptyState } from '../components/ui';
 import { createPayment, listStudents } from '../api/endpoints';
+import { parseMoney, brToIso, todayBR } from '../lib/forms';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import type { MaisStackParamList } from '../navigation/types';
 import type { Student, Payment } from '../types/database';
@@ -24,36 +25,6 @@ const METHOD_OPTIONS: { value: NonNullable<Payment['payment_method']>; label: st
   { value: 'card', label: 'Cartão' },
   { value: 'other', label: 'Outro' },
 ];
-
-const pad = (n: number) => String(n).padStart(2, '0');
-
-/** Data de hoje como "DD/MM/AAAA". */
-function todayBR(): string {
-  const d = new Date();
-  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-}
-
-/** "DD/MM/AAAA" → "AAAA-MM-DD" (ISO); null se inválida. */
-function brToIso(br: string): string | null {
-  const m = br.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (!m) return null;
-  const [, dd, mm, yyyy] = m;
-  const day = Number(dd);
-  const month = Number(mm);
-  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
-  const iso = `${yyyy}-${mm}-${dd}`;
-  const parsed = new Date(iso);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return iso;
-}
-
-/** "R$ 220,50" / "220.5" → número; null se vazio/ inválido. */
-function parseMoney(raw: string): number | null {
-  const cleaned = raw.replace(/[^0-9.,]/g, '').replace(/\./g, '').replace(',', '.');
-  if (!cleaned) return null;
-  const n = Number(cleaned);
-  return Number.isFinite(n) ? n : null;
-}
 
 export function PagamentoFormScreen({ navigation }: Props) {
   const { tokens } = useAppTheme();

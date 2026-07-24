@@ -6,6 +6,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, EmptyState } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import { getWorkout } from '../api/endpoints';
+import { setsLabel } from '../lib/format';
 import { sampleWorkouts, type SampleWorkout } from '../data/sample';
 import type { Workout } from '../types/database';
 import type { TreinosStackParamList } from '../navigation/types';
@@ -15,13 +16,6 @@ type Props = NativeStackScreenProps<TreinosStackParamList, 'TreinoDetalhe'>;
 type DetailExercise = { name: string; detail: string; sets: string; load: string };
 type DetailDay = { label: string; exercises: DetailExercise[] };
 type DetailWorkout = { name: string; description?: string; days: DetailDay[] };
-
-function setsLabel(sets: number | null, reps: string | null): string {
-  if (sets != null && reps) return `${sets} x ${reps}`;
-  if (sets != null) return String(sets);
-  if (reps) return reps;
-  return '—';
-}
 
 function fromWorkout(w: Workout): DetailWorkout {
   const days = [...(w.workout_days ?? [])]

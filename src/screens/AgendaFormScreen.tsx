@@ -5,34 +5,12 @@ import { TextInput, Text, TouchableRipple, ActivityIndicator } from 'react-nativ
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, ErrorState, EmptyState } from '../components/ui';
 import { createSession, listStudents } from '../api/endpoints';
+import { todayBR, toLocalDate } from '../lib/forms';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import type { AgendaStackParamList } from '../navigation/types';
 import type { Student } from '../types/database';
 
 type Props = NativeStackScreenProps<AgendaStackParamList, 'AgendaForm'>;
-
-const pad = (n: number) => String(n).padStart(2, '0');
-
-function todayBR(): string {
-  const d = new Date();
-  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-}
-
-/** "DD/MM/AAAA" + "HH:MM" → Date local; null se inválido. */
-function toLocalDate(br: string, time: string): Date | null {
-  const dm = br.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  const tm = time.trim().match(/^(\d{1,2}):(\d{2})$/);
-  if (!dm || !tm) return null;
-  const [, dd, mm, yyyy] = dm;
-  const [, hh, min] = tm;
-  const day = Number(dd);
-  const month = Number(mm);
-  const hour = Number(hh);
-  const minute = Number(min);
-  if (month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59) return null;
-  const d = new Date(Number(yyyy), month - 1, day, hour, minute, 0, 0);
-  return Number.isNaN(d.getTime()) ? null : d;
-}
 
 export function AgendaFormScreen({ navigation }: Props) {
   const { tokens } = useAppTheme();

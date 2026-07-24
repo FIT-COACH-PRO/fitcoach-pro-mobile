@@ -7,6 +7,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, StatusBadge, Card, EmptyState, type Tone } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import { getStudent } from '../api/endpoints';
+import { ageFrom } from '../lib/format';
 import { sampleStudents, type SampleStudent, type StudentStatus } from '../data/sample';
 import type { Student } from '../types/database';
 import type { AlunosStackParamList } from '../navigation/types';
@@ -39,17 +40,6 @@ type DetailView = {
   objective?: string;
   restrictions?: string;
 };
-
-function ageFrom(birth: string | null): number | undefined {
-  if (!birth) return undefined;
-  const d = new Date(birth);
-  if (Number.isNaN(d.getTime())) return undefined;
-  const now = new Date();
-  let a = now.getFullYear() - d.getFullYear();
-  const m = now.getMonth() - d.getMonth();
-  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) a--;
-  return a >= 0 ? a : undefined;
-}
 
 function fromStudent(s: Student): DetailView {
   // altura pode vir em metros (1.68) ou centímetros (168); normaliza para metros.

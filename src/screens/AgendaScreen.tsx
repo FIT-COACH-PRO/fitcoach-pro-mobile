@@ -7,19 +7,15 @@ import { Text, TouchableRipple, FAB, ActivityIndicator } from 'react-native-pape
 import { ScreenHeader, StatusBadge, EmptyState, type Tone } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import { listSessions } from '../api/endpoints';
+import { pad, sameDay } from '../lib/forms';
 import { sampleSessions } from '../data/sample';
 import type { Session } from '../types/database';
 import type { AgendaStackParamList } from '../navigation/types';
 
 const WEEKDAY_LETTERS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']; // Dom → Sáb
 const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-const pad = (n: number) => String(n).padStart(2, '0');
 
 type SessionRowData = { id: string; time: string; studentName: string; durationMin: number; isNext: boolean };
-
-function sameDay(a: Date, b: Date): boolean {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-}
 
 export function AgendaScreen() {
   const { tokens } = useAppTheme();

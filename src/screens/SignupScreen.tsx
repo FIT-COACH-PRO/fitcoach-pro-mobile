@@ -4,17 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TextInput, Text, TouchableRipple } from 'react-native-paper';
 import { useAuth } from '../hooks/useAuth';
 import { ScreenHeader, ErrorState } from '../components/ui';
+import { brToIso } from '../lib/forms';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
-
-/** "DD/MM/AAAA" → "AAAA-MM-DD" (ISO); null se inválida. */
-function brToIso(br: string): string | null {
-  const m = br.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (!m) return null;
-  const [, dd, mm, yyyy] = m;
-  if (Number(mm) < 1 || Number(mm) > 12 || Number(dd) < 1 || Number(dd) > 31) return null;
-  const iso = `${yyyy}-${mm}-${dd}`;
-  return Number.isNaN(new Date(iso).getTime()) ? null : iso;
-}
 
 export function SignupScreen({ onBack }: { onBack: () => void }) {
   const { tokens } = useAppTheme();

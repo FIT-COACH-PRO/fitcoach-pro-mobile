@@ -8,7 +8,8 @@ import { ScreenHeader, StatusBadge, Card, EmptyState, type Tone } from '../compo
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import { listPayments } from '../api/endpoints';
 import { samplePayments, sampleFinanceSummary } from '../data/sample';
-import { formatCurrency } from '../lib/format';
+import { formatCurrency, formatVenc } from '../lib/format';
+import { computeSummary, type FinanceSummary } from '../lib/finance';
 import type { Payment } from '../types/database';
 import type { MaisStackParamList } from '../navigation/types';
 
@@ -20,13 +21,6 @@ const PAYMENT_META: Record<Payment['status'], { label: string; tone: Tone }> = {
 };
 
 type PayRow = { id: string; studentName: string; amount: number; dueLabel: string; status: Payment['status'] };
-type Summary = { receivedMonth: number; pending: number };
-
-/** "AAAA-MM-DD" → "Venc. DD/MM". */
-function formatVenc(iso: string): string {
-  const [, mm, dd] = iso.split('-');
-  return dd && mm ? `Venc. ${dd}/${mm}` : 'Venc. —';
-}
 
 function toRow(p: Payment): PayRow {
   return {
@@ -38,28 +32,13 @@ function toRow(p: Payment): PayRow {
   };
 }
 
-function computeSummary(list: Payment[]): Summary {
-  const now = new Date();
-  const y = now.getFullYear();
-  const mo = now.getMonth();
-  let receivedMonth = 0;
-  let pending = 0;
-  for (const p of list) {
-    const due = new Date(p.due_date);
-    const inMonth = due.getFullYear() === y && due.getMonth() === mo;
-    if (p.status === 'paid' && inMonth) receivedMonth += p.amount;
-    if (p.status === 'pending') pending += p.amount;
-  }
-  return { receivedMonth, pending };
-}
-
 export function FinanceiroScreen() {
   const { tokens } = useAppTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<MaisStackParamList>>();
 
   const [rows, setRows] = useState<PayRow[] | null>(null);
-  const [summary, setSummary] = useState<Summary>({ receivedMonth: 0, pending: 0 });
+  const [summary, setSummary] = useState<FinanceSummary>({ receivedMonth: 0, pending: 0 });
 
   const load = useCallback(async () => {
     try {

@@ -5,6 +5,7 @@ import { TextInput, Text, TouchableRipple, ActivityIndicator } from 'react-nativ
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, ErrorState } from '../components/ui';
 import { createStudent, updateStudent, getStudent } from '../api/endpoints';
+import { parseMoney } from '../lib/forms';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import type { AlunosStackParamList } from '../navigation/types';
 import type { Student } from '../types/database';
@@ -16,14 +17,6 @@ const STATUS_OPTIONS: { value: Student['status']; label: string }[] = [
   { value: 'paused', label: 'Pausado' },
   { value: 'inactive', label: 'Inativo' },
 ];
-
-/** Converte "R$ 220,50" / "220.5" em número; vazio vira null. */
-function parseMoney(raw: string): number | null {
-  const cleaned = raw.replace(/[^0-9.,]/g, '').replace(/\./g, '').replace(',', '.');
-  if (!cleaned) return null;
-  const n = Number(cleaned);
-  return Number.isFinite(n) ? n : null;
-}
 
 export function AlunoFormScreen({ route, navigation }: Props) {
   const { tokens } = useAppTheme();
