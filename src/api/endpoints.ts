@@ -420,6 +420,24 @@ export async function updateProfile(input: ProfileInput): Promise<Profile> {
   return data as Profile;
 }
 
+/**
+ * Gera insights de IA para um aluno via Edge Function do Supabase.
+ * A chave da Anthropic fica no servidor (secret da função) — nunca no app.
+ * O `functions.invoke` envia o JWT do trainer, então a função respeita a RLS.
+ */
+export async function getStudentInsights(studentId: string): Promise<string> {
+  await requireUserId(); // garante sessão ativa antes de chamar a função
+  const { data, error } = await supabase.functions.invoke('student-insights', {
+    body: { student_id: studentId },
+  });
+  if (error) {
+    throw new Error('Não foi possível gerar os insights. Verifique se a função de IA está publicada.');
+  }
+  const text = (data as { insights?: string } | null)?.insights;
+  if (!text) throw new Error('A IA não retornou um resultado.');
+  return text;
+}
+
 /** Registra o token de push Expo no perfil do trainer (para lembretes). */
 export async function registerPushToken(token: string): Promise<void> {
   if (!token.startsWith('ExponentPushToken')) {

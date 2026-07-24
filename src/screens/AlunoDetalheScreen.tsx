@@ -4,9 +4,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Text, Icon, TouchableRipple, ActivityIndicator } from 'react-native-paper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScreenHeader, StatusBadge, Card, EmptyState, type Tone } from '../components/ui';
+import { ScreenHeader, StatusBadge, Card, EmptyState, ErrorState, type Tone } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
-import { getStudent } from '../api/endpoints';
+import { getStudent, getStudentInsights } from '../api/endpoints';
 import { ageFrom } from '../lib/format';
 import { sampleStudents, type SampleStudent, type StudentStatus } from '../data/sample';
 import type { Student } from '../types/database';
@@ -82,6 +82,21 @@ export function AlunoDetalheScreen({ route, navigation }: Props) {
 
   const [student, setStudent] = useState<DetailView | null>(null);
   const [loading, setLoading] = useState(true);
+  const [iaText, setIaText] = useState<string | null>(null);
+  const [iaLoading, setIaLoading] = useState(false);
+  const [iaError, setIaError] = useState<string | null>(null);
+
+  const generateInsights = async () => {
+    setIaLoading(true);
+    setIaError(null);
+    try {
+      setIaText(await getStudentInsights(studentId));
+    } catch (e) {
+      setIaError(e instanceof Error ? e.message : 'Falha ao gerar insights.');
+    } finally {
+      setIaLoading(false);
+    }
+  };
 
   // Recarrega ao focar (reflete edições ao voltar do formulário).
   useFocusEffect(
@@ -210,12 +225,19 @@ export function AlunoDetalheScreen({ route, navigation }: Props) {
               </Text>
             </View>
           </View>
+          {iaText && (
+            <Text style={[styles.iaResult, { color: tokens.text.secondary }]}>{iaText}</Text>
+          )}
+          {iaError && <ErrorState message={iaError} onRetry={generateInsights} />}
           <TouchableRipple
-            onPress={() => Alert.alert('Insights com IA', 'Geração de insights em breve.')}
-            style={[styles.iaBtn, { backgroundColor: tokens.accent.base }]}
+            onPress={generateInsights}
+            disabled={iaLoading}
+            style={[styles.iaBtn, { backgroundColor: tokens.accent.base, opacity: iaLoading ? 0.7 : 1 }]}
             borderless
           >
-            <Text style={[styles.btnText, { color: tokens.text.onAccent }]}>Gerar insights</Text>
+            <Text style={[styles.btnText, { color: tokens.text.onAccent }]}>
+              {iaLoading ? 'Gerando…' : iaText ? 'Gerar novamente' : 'Gerar insights'}
+            </Text>
           </TouchableRipple>
         </Card>
       </ScrollView>
@@ -301,4 +323,5 @@ const styles = StyleSheet.create({
   iaTitle: { fontSize: fontSize.md, fontWeight: '600' },
   iaSubtitle: { fontSize: fontSize.sm },
   iaBtn: { borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
+  iaResult: { fontSize: fontSize.sm, lineHeight: 20 },
 });
