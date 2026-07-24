@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useAuth } from './src/hooks/useAuth';
 import { registerForPushNotifications } from './src/lib/notifications';
 import { AppNavigator } from './src/navigation';
-import { LoginScreen } from './src/screens/LoginScreen';
+import { AuthFlow } from './src/screens/AuthFlow';
 import { lightTheme, darkTheme } from './src/theme';
 import { ThemeModeProvider, useThemeMode } from './src/theme/ThemeMode';
 
@@ -33,7 +33,7 @@ function Root() {
       ) : user ? (
         <AppNavigator theme={theme} />
       ) : (
-        <LoginScreen />
+        <AuthFlow />
       )}
     </PaperProvider>
   );
