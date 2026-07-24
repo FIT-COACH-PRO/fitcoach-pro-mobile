@@ -1,10 +1,14 @@
+import { useCallback, useState } from 'react';
 import { View, ScrollView, StyleSheet, Alert, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text, Icon, TouchableRipple } from 'react-native-paper';
+import { useFocusEffect } from '@react-navigation/native';
+import { Text, Icon, TouchableRipple, ActivityIndicator } from 'react-native-paper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, StatusBadge, Card, EmptyState, type Tone } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
-import { sampleStudents, type StudentStatus } from '../data/sample';
+import { getStudent } from '../api/endpoints';
+import { sampleStudents, type SampleStudent, type StudentStatus } from '../data/sample';
+import type { Student } from '../types/database';
 import type { AlunosStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<AlunosStackParamList, 'AlunoDetalhe'>;
@@ -22,10 +26,102 @@ const ACTIONS = [
   { key: 'treinos', label: 'Treinos', icon: 'dumbbell' },
 ] as const;
 
+/** Forma que a tela de detalhe consome, alimentada por dado real ou exemplo. */
+type DetailView = {
+  name: string;
+  status: StudentStatus;
+  weightKg?: number;
+  heightM?: number;
+  bmi?: number;
+  age?: number;
+  email?: string;
+  phone?: string;
+  objective?: string;
+  restrictions?: string;
+};
+
+function ageFrom(birth: string | null): number | undefined {
+  if (!birth) return undefined;
+  const d = new Date(birth);
+  if (Number.isNaN(d.getTime())) return undefined;
+  const now = new Date();
+  let a = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) a--;
+  return a >= 0 ? a : undefined;
+}
+
+function fromStudent(s: Student): DetailView {
+  // altura pode vir em metros (1.68) ou centímetros (168); normaliza para metros.
+  const heightM = s.height != null ? (s.height > 3 ? s.height / 100 : s.height) : undefined;
+  const weightKg = s.weight ?? undefined;
+  const bmi = weightKg != null && heightM ? weightKg / (heightM * heightM) : undefined;
+  return {
+    name: s.full_name,
+    status: s.status,
+    weightKg,
+    heightM,
+    bmi,
+    age: ageFrom(s.birth_date),
+    email: s.email ?? undefined,
+    phone: s.whatsapp || undefined,
+    objective: s.objective ?? undefined,
+    restrictions: s.restrictions ?? s.injuries ?? undefined,
+  };
+}
+
+function fromSample(s: SampleStudent): DetailView {
+  return {
+    name: s.name,
+    status: s.status,
+    weightKg: s.weightKg,
+    heightM: s.heightM,
+    bmi: s.bmi,
+    age: s.age,
+    email: s.email,
+    phone: s.phone,
+    objective: s.objective,
+    restrictions: s.restrictions,
+  };
+}
+
 export function AlunoDetalheScreen({ route, navigation }: Props) {
   const { tokens } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const student = sampleStudents.find((s) => s.id === route.params.studentId);
+  const { studentId } = route.params;
+
+  const [student, setStudent] = useState<DetailView | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Recarrega ao focar (reflete edições ao voltar do formulário).
+  useFocusEffect(
+    useCallback(() => {
+      let alive = true;
+      (async () => {
+        try {
+          const real = await getStudent(studentId);
+          if (alive) setStudent(fromStudent(real));
+        } catch {
+          // Offline/demo: tenta os dados de exemplo pelo mesmo id.
+          const sample = sampleStudents.find((s) => s.id === studentId);
+          if (alive) setStudent(sample ? fromSample(sample) : null);
+        } finally {
+          if (alive) setLoading(false);
+        }
+      })();
+      return () => {
+        alive = false;
+      };
+    }, [studentId])
+  );
+
+  if (loading) {
+    return (
+      <View style={[styles.screen, styles.center, { backgroundColor: tokens.surface.page }]}>
+        <ActivityIndicator color={tokens.accent.base} />
+      </View>
+    );
+  }
 
   if (!student) {
     return (
@@ -66,7 +162,7 @@ export function AlunoDetalheScreen({ route, navigation }: Props) {
             </View>
           </TouchableRipple>
           <TouchableRipple
-            onPress={() => Alert.alert('Editar', 'Edição de aluno em breve.')}
+            onPress={() => navigation.navigate('AlunoForm', { studentId })}
             style={[styles.outlineBtn, { borderColor: tokens.surface.divider, backgroundColor: tokens.surface.card }]}
             borderless
           >
@@ -178,6 +274,7 @@ function InfoCard({
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
+  center: { alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
 
   actionsTop: { flexDirection: 'row', gap: spacing.sm },

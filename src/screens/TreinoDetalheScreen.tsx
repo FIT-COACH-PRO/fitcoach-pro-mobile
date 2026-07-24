@@ -1,20 +1,90 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet, Share } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text, Icon, TouchableRipple } from 'react-native-paper';
+import { Text, Icon, TouchableRipple, ActivityIndicator } from 'react-native-paper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, EmptyState } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
-import { sampleWorkouts, type SampleExercise } from '../data/sample';
+import { getWorkout } from '../api/endpoints';
+import { sampleWorkouts, type SampleWorkout } from '../data/sample';
+import type { Workout } from '../types/database';
 import type { TreinosStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<TreinosStackParamList, 'TreinoDetalhe'>;
 
+type DetailExercise = { name: string; detail: string; sets: string; load: string };
+type DetailDay = { label: string; exercises: DetailExercise[] };
+type DetailWorkout = { name: string; description?: string; days: DetailDay[] };
+
+function setsLabel(sets: number | null, reps: string | null): string {
+  if (sets != null && reps) return `${sets} x ${reps}`;
+  if (sets != null) return String(sets);
+  if (reps) return reps;
+  return '—';
+}
+
+function fromWorkout(w: Workout): DetailWorkout {
+  const days = [...(w.workout_days ?? [])]
+    .sort((a, b) => a.day_order - b.day_order)
+    .map((d) => ({
+      label: d.day_label || d.name,
+      exercises: [...(d.workout_exercises ?? [])]
+        .sort((a, b) => a.exercise_order - b.exercise_order)
+        .map((ex) => ({
+          name: ex.exercise_name,
+          detail: ex.notes ?? '',
+          sets: setsLabel(ex.sets, ex.reps),
+          load: ex.weight ?? '—',
+        })),
+    }));
+  return { name: w.name, description: w.description ?? undefined, days };
+}
+
+function fromSample(w: SampleWorkout): DetailWorkout {
+  return {
+    name: w.name,
+    description: w.description,
+    days: (w.days ?? []).map((d) => ({
+      label: d.label,
+      exercises: d.exercises.map((e) => ({ name: e.name, detail: e.detail, sets: e.sets, load: e.load })),
+    })),
+  };
+}
+
 export function TreinoDetalheScreen({ route, navigation }: Props) {
   const { tokens } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const workout = sampleWorkouts.find((w) => w.id === route.params.workoutId);
+  const { workoutId } = route.params;
+
+  const [workout, setWorkout] = useState<DetailWorkout | null>(null);
+  const [loading, setLoading] = useState(true);
   const [dayIndex, setDayIndex] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const real = await getWorkout(workoutId);
+        if (alive) setWorkout(fromWorkout(real));
+      } catch {
+        const sample = sampleWorkouts.find((w) => w.id === workoutId);
+        if (alive) setWorkout(sample ? fromSample(sample) : null);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [workoutId]);
+
+  if (loading) {
+    return (
+      <View style={[styles.screen, styles.center, { backgroundColor: tokens.surface.page }]}>
+        <ActivityIndicator color={tokens.accent.base} />
+      </View>
+    );
+  }
 
   if (!workout) {
     return (
@@ -25,7 +95,7 @@ export function TreinoDetalheScreen({ route, navigation }: Props) {
     );
   }
 
-  const days = workout.days ?? [];
+  const days = workout.days;
   const currentDay = days[dayIndex];
 
   const share = () => {
@@ -48,65 +118,73 @@ export function TreinoDetalheScreen({ route, navigation }: Props) {
           </Text>
         )}
 
-        {days.length > 1 && (
-          <View style={styles.tabs}>
-            {days.map((d, i) => {
-              const selected = i === dayIndex;
-              return (
-                <TouchableRipple
-                  key={d.label}
-                  onPress={() => setDayIndex(i)}
-                  style={[
-                    styles.tab,
-                    {
-                      backgroundColor: selected ? tokens.accent.base : tokens.surface.card,
-                      borderColor: selected ? tokens.accent.base : tokens.surface.divider,
-                    },
-                  ]}
-                  borderless
-                >
-                  <Text
-                    style={[
-                      styles.tabText,
-                      { color: selected ? tokens.text.onAccent : tokens.text.secondary },
-                    ]}
-                  >
-                    {d.label}
-                  </Text>
-                </TouchableRipple>
-              );
-            })}
-          </View>
+        {days.length === 0 ? (
+          <EmptyState icon="dumbbell" title="Treino sem exercícios" />
+        ) : (
+          <>
+            {days.length > 1 && (
+              <View style={styles.tabs}>
+                {days.map((d, i) => {
+                  const selected = i === dayIndex;
+                  return (
+                    <TouchableRipple
+                      key={`${d.label}-${i}`}
+                      onPress={() => setDayIndex(i)}
+                      style={[
+                        styles.tab,
+                        {
+                          backgroundColor: selected ? tokens.accent.base : tokens.surface.card,
+                          borderColor: selected ? tokens.accent.base : tokens.surface.divider,
+                        },
+                      ]}
+                      borderless
+                    >
+                      <Text
+                        style={[
+                          styles.tabText,
+                          { color: selected ? tokens.text.onAccent : tokens.text.secondary },
+                        ]}
+                      >
+                        {d.label}
+                      </Text>
+                    </TouchableRipple>
+                  );
+                })}
+              </View>
+            )}
+
+            <View style={styles.exercises}>
+              {(currentDay?.exercises ?? []).map((ex, i) => (
+                <ExerciseRow key={`${ex.name}-${i}`} exercise={ex} />
+              ))}
+            </View>
+
+            <TouchableRipple
+              onPress={share}
+              style={[styles.shareBtn, { backgroundColor: tokens.success.base }]}
+              borderless
+            >
+              <View style={styles.shareInner}>
+                <Icon source="share-variant" size={18} color={tokens.text.onDark} />
+                <Text style={[styles.shareText, { color: tokens.text.onDark }]}>Compartilhar treino</Text>
+              </View>
+            </TouchableRipple>
+          </>
         )}
-
-        <View style={styles.exercises}>
-          {(currentDay?.exercises ?? []).map((ex, i) => (
-            <ExerciseRow key={`${ex.name}-${i}`} exercise={ex} />
-          ))}
-        </View>
-
-        <TouchableRipple
-          onPress={share}
-          style={[styles.shareBtn, { backgroundColor: tokens.success.base }]}
-          borderless
-        >
-          <View style={styles.shareInner}>
-            <Icon source="share-variant" size={18} color={tokens.text.onDark} />
-            <Text style={[styles.shareText, { color: tokens.text.onDark }]}>Compartilhar treino</Text>
-          </View>
-        </TouchableRipple>
       </ScrollView>
     </View>
   );
 }
 
-function ExerciseRow({ exercise }: { exercise: SampleExercise }) {
+function ExerciseRow({ exercise }: { exercise: DetailExercise }) {
   const { tokens } = useAppTheme();
   return (
     <View style={[styles.exRow, { backgroundColor: tokens.surface.card }]}>
       <View style={styles.exInfo}>
         <Text style={[styles.exName, { color: tokens.text.primary }]}>{exercise.name}</Text>
-        <Text style={[styles.exDetail, { color: tokens.text.secondary }]}>{exercise.detail}</Text>
+        {!!exercise.detail && (
+          <Text style={[styles.exDetail, { color: tokens.text.secondary }]}>{exercise.detail}</Text>
+        )}
       </View>
       <View style={styles.exMeta}>
         <Text style={[styles.exSets, { color: tokens.text.primary }]}>{exercise.sets}</Text>
@@ -125,10 +203,11 @@ function ExerciseRow({ exercise }: { exercise: SampleExercise }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
+  center: { alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
   description: { fontSize: fontSize.sm, lineHeight: 20 },
 
-  tabs: { flexDirection: 'row', gap: spacing.sm },
+  tabs: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   tab: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs + 2,

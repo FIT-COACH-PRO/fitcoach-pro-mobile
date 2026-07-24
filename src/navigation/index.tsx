@@ -7,6 +7,7 @@ import type {
   HomeStackParamList,
   AlunosStackParamList,
   TreinosStackParamList,
+  AgendaStackParamList,
   MaisStackParamList,
   RootTabParamList,
 } from './types';
@@ -15,18 +16,24 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { NotificacoesScreen } from '../screens/NotificacoesScreen';
 import { AlunosListScreen } from '../screens/AlunosListScreen';
 import { AlunoDetalheScreen } from '../screens/AlunoDetalheScreen';
+import { AlunoFormScreen } from '../screens/AlunoFormScreen';
 import { WorkoutsScreen } from '../screens/WorkoutsScreen';
 import { TreinoDetalheScreen } from '../screens/TreinoDetalheScreen';
+import { WorkoutFormScreen } from '../screens/WorkoutFormScreen';
 import { AgendaScreen } from '../screens/AgendaScreen';
+import { AgendaFormScreen } from '../screens/AgendaFormScreen';
 import { MaisScreen } from '../screens/MaisScreen';
 import { FinanceiroScreen } from '../screens/FinanceiroScreen';
+import { PagamentoFormScreen } from '../screens/PagamentoFormScreen';
 import { ConfiguracoesScreen } from '../screens/ConfiguracoesScreen';
+import { PerfilFormScreen } from '../screens/PerfilFormScreen';
 import { ComunidadeScreen } from '../screens/ComunidadeScreen';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 const AlunosStack = createNativeStackNavigator<AlunosStackParamList>();
 const TreinosStack = createNativeStackNavigator<TreinosStackParamList>();
+const AgendaStack = createNativeStackNavigator<AgendaStackParamList>();
 const MaisStack = createNativeStackNavigator<MaisStackParamList>();
 
 const stackOptions = { headerShown: false } as const;
@@ -47,6 +54,7 @@ function AlunosStackNav() {
     <AlunosStack.Navigator screenOptions={stackOptions}>
       <AlunosStack.Screen name="AlunosList" component={AlunosListScreen} />
       <AlunosStack.Screen name="AlunoDetalhe" component={AlunoDetalheScreen} />
+      <AlunosStack.Screen name="AlunoForm" component={AlunoFormScreen} />
     </AlunosStack.Navigator>
   );
 }
@@ -56,7 +64,17 @@ function TreinosStackNav() {
     <TreinosStack.Navigator screenOptions={stackOptions}>
       <TreinosStack.Screen name="TreinosList" component={WorkoutsScreen} />
       <TreinosStack.Screen name="TreinoDetalhe" component={TreinoDetalheScreen} />
+      <TreinosStack.Screen name="TreinoForm" component={WorkoutFormScreen} />
     </TreinosStack.Navigator>
+  );
+}
+
+function AgendaStackNav() {
+  return (
+    <AgendaStack.Navigator screenOptions={stackOptions}>
+      <AgendaStack.Screen name="AgendaList" component={AgendaScreen} />
+      <AgendaStack.Screen name="AgendaForm" component={AgendaFormScreen} />
+    </AgendaStack.Navigator>
   );
 }
 
@@ -65,10 +83,12 @@ function MaisStackNav() {
     <MaisStack.Navigator screenOptions={stackOptions}>
       <MaisStack.Screen name="MaisHub" component={MaisScreen} />
       <MaisStack.Screen name="Financeiro" component={FinanceiroScreen} />
+      <MaisStack.Screen name="PagamentoForm" component={PagamentoFormScreen} />
       <MaisStack.Screen name="Notificacoes">
         {({ navigation }) => <NotificacoesScreen onBack={navigation.goBack} />}
       </MaisStack.Screen>
       <MaisStack.Screen name="Configuracoes" component={ConfiguracoesScreen} />
+      <MaisStack.Screen name="PerfilForm" component={PerfilFormScreen} />
       <MaisStack.Screen name="Comunidade">
         {({ navigation }) => <ComunidadeScreen onBack={navigation.goBack} />}
       </MaisStack.Screen>
@@ -115,7 +135,7 @@ export function AppNavigator({ theme }: { theme: AppTheme }) {
         <Tab.Screen name="HomeTab" component={HomeStackNav} />
         <Tab.Screen name="AlunosTab" component={AlunosStackNav} />
         <Tab.Screen name="TreinosTab" component={TreinosStackNav} />
-        <Tab.Screen name="AgendaTab" component={AgendaScreen} />
+        <Tab.Screen name="AgendaTab" component={AgendaStackNav} />
         <Tab.Screen name="MaisTab" component={MaisStackNav} />
       </Tab.Navigator>
     </NavigationContainer>

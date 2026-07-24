@@ -1,5 +1,7 @@
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Text, Icon, TouchableRipple } from 'react-native-paper';
 import { ScreenHeader, Avatar, Card } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
@@ -8,12 +10,14 @@ import { useAuth } from '../hooks/useAuth';
 import { sendLocalNotification } from '../lib/notifications';
 import { requestCalendarPermission } from '../lib/calendar';
 import { sampleProfile } from '../data/sample';
+import type { MaisStackParamList } from '../navigation/types';
 
 export function ConfiguracoesScreen() {
   const { tokens } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { user, signOut } = useAuth();
   const { mode, setMode } = useThemeMode();
+  const navigation = useNavigation<NativeStackNavigationProp<MaisStackParamList>>();
 
   const name = (user?.user_metadata?.full_name as string | undefined) ?? sampleProfile.name;
   const email = user?.email ?? sampleProfile.email;
@@ -48,7 +52,7 @@ export function ConfiguracoesScreen() {
             icon="account-outline"
             title="Perfil"
             subtitle="Editar dados pessoais"
-            onPress={() => Alert.alert('Perfil', 'Edição de perfil em breve.')}
+            onPress={() => navigation.navigate('PerfilForm')}
           />
           <SettingRow
             icon="shield-check-outline"

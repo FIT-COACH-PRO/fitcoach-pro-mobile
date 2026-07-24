@@ -1,24 +1,58 @@
-import { useMemo, useState } from 'react';
-import { View, FlatList, StyleSheet, Alert } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { View, FlatList, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Searchbar, TouchableRipple, Text, Icon, FAB } from 'react-native-paper';
+import { Searchbar, TouchableRipple, Text, Icon, FAB, ActivityIndicator } from 'react-native-paper';
 import { ScreenHeader, EmptyState } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
-import { sampleWorkouts, type SampleWorkout } from '../data/sample';
+import { listWorkouts } from '../api/endpoints';
+import { sampleWorkouts } from '../data/sample';
+import type { Workout } from '../types/database';
 import type { TreinosStackParamList } from '../navigation/types';
+
+const DIFF_LABEL: Record<NonNullable<Workout['difficulty']>, string> = {
+  beginner: 'Iniciante',
+  intermediate: 'Intermediário',
+  advanced: 'Avançado',
+};
+
+type Row = { id: string; name: string; level: string; icon: string };
+
+const fromWorkout = (w: Workout): Row => ({
+  id: w.id,
+  name: w.name,
+  level: w.difficulty ? DIFF_LABEL[w.difficulty] : 'Personalizado',
+  icon: 'dumbbell',
+});
 
 export function WorkoutsScreen() {
   const { tokens } = useAppTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<TreinosStackParamList>>();
   const [query, setQuery] = useState('');
+  const [rows, setRows] = useState<Row[] | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const list = await listWorkouts();
+      setRows(list.map(fromWorkout));
+    } catch {
+      setRows(sampleWorkouts.map((w) => ({ id: w.id, name: w.name, level: w.level, icon: w.icon })));
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   const workouts = useMemo(() => {
+    if (!rows) return [];
     const q = query.trim().toLowerCase();
-    return sampleWorkouts.filter((w) => !q || w.name.toLowerCase().includes(q));
-  }, [query]);
+    return rows.filter((w) => !q || w.name.toLowerCase().includes(q));
+  }, [rows, query]);
 
   return (
     <View style={[styles.screen, { backgroundColor: tokens.surface.page, paddingTop: insets.top + spacing.lg }]}>
@@ -37,33 +71,39 @@ export function WorkoutsScreen() {
         />
       </View>
 
-      <FlatList
-        data={workouts}
-        keyExtractor={(w) => w.id}
-        contentContainerStyle={styles.list}
-        keyboardShouldPersistTaps="handled"
-        ListEmptyComponent={
-          <EmptyState icon="dumbbell" title="Sem treinos" subtitle="Crie um modelo no botão +." />
-        }
-        renderItem={({ item }) => (
-          <WorkoutRow
-            workout={item}
-            onPress={() => navigation.navigate('TreinoDetalhe', { workoutId: item.id })}
-          />
-        )}
-      />
+      {rows === null ? (
+        <View style={styles.center}>
+          <ActivityIndicator color={tokens.accent.base} />
+        </View>
+      ) : (
+        <FlatList
+          data={workouts}
+          keyExtractor={(w) => w.id}
+          contentContainerStyle={styles.list}
+          keyboardShouldPersistTaps="handled"
+          ListEmptyComponent={
+            <EmptyState icon="dumbbell" title="Sem treinos" subtitle="Crie um treino no botão +." />
+          }
+          renderItem={({ item }) => (
+            <WorkoutRow
+              workout={item}
+              onPress={() => navigation.navigate('TreinoDetalhe', { workoutId: item.id })}
+            />
+          )}
+        />
+      )}
 
       <FAB
         icon="plus"
         style={[styles.fab, { backgroundColor: tokens.accent.base }]}
         color={tokens.text.onAccent}
-        onPress={() => Alert.alert('Novo treino', 'Criação de treino em breve.')}
+        onPress={() => navigation.navigate('TreinoForm')}
       />
     </View>
   );
 }
 
-function WorkoutRow({ workout, onPress }: { workout: SampleWorkout; onPress: () => void }) {
+function WorkoutRow({ workout, onPress }: { workout: Row; onPress: () => void }) {
   const { tokens } = useAppTheme();
   return (
     <TouchableRipple onPress={onPress} style={[styles.row, { backgroundColor: tokens.surface.card }]}>
@@ -87,6 +127,7 @@ function WorkoutRow({ workout, onPress }: { workout: SampleWorkout; onPress: () 
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   controls: { paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
   search: { borderRadius: radius.md },
   list: { paddingHorizontal: spacing.lg, paddingBottom: 96, gap: spacing.sm },

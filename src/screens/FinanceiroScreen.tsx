@@ -1,63 +1,139 @@
-import { View, ScrollView, StyleSheet, Alert } from 'react-native';
+import { useCallback, useState } from 'react';
+import { View, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text, FAB } from 'react-native-paper';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Text, FAB, ActivityIndicator } from 'react-native-paper';
 import { ScreenHeader, StatusBadge, Card, EmptyState, type Tone } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
-import { samplePayments, sampleFinanceSummary, type SamplePayment } from '../data/sample';
+import { listPayments } from '../api/endpoints';
+import { samplePayments, sampleFinanceSummary } from '../data/sample';
 import { formatCurrency } from '../lib/format';
+import type { Payment } from '../types/database';
+import type { MaisStackParamList } from '../navigation/types';
 
-const PAYMENT_META: Record<SamplePayment['status'], { label: string; tone: Tone }> = {
+const PAYMENT_META: Record<Payment['status'], { label: string; tone: Tone }> = {
   paid: { label: 'Pago', tone: 'success' },
   pending: { label: 'Pendente', tone: 'warning' },
   overdue: { label: 'Atrasado', tone: 'danger' },
+  cancelled: { label: 'Cancelado', tone: 'neutral' },
 };
+
+type PayRow = { id: string; studentName: string; amount: number; dueLabel: string; status: Payment['status'] };
+type Summary = { receivedMonth: number; pending: number };
+
+/** "AAAA-MM-DD" → "Venc. DD/MM". */
+function formatVenc(iso: string): string {
+  const [, mm, dd] = iso.split('-');
+  return dd && mm ? `Venc. ${dd}/${mm}` : 'Venc. —';
+}
+
+function toRow(p: Payment): PayRow {
+  return {
+    id: p.id,
+    studentName: p.student?.full_name ?? 'Aluno',
+    amount: p.amount,
+    dueLabel: formatVenc(p.due_date),
+    status: p.status,
+  };
+}
+
+function computeSummary(list: Payment[]): Summary {
+  const now = new Date();
+  const y = now.getFullYear();
+  const mo = now.getMonth();
+  let receivedMonth = 0;
+  let pending = 0;
+  for (const p of list) {
+    const due = new Date(p.due_date);
+    const inMonth = due.getFullYear() === y && due.getMonth() === mo;
+    if (p.status === 'paid' && inMonth) receivedMonth += p.amount;
+    if (p.status === 'pending') pending += p.amount;
+  }
+  return { receivedMonth, pending };
+}
 
 export function FinanceiroScreen() {
   const { tokens } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const payments = samplePayments;
+  const navigation = useNavigation<NativeStackNavigationProp<MaisStackParamList>>();
+
+  const [rows, setRows] = useState<PayRow[] | null>(null);
+  const [summary, setSummary] = useState<Summary>({ receivedMonth: 0, pending: 0 });
+
+  const load = useCallback(async () => {
+    try {
+      const list = await listPayments();
+      setRows(list.map(toRow));
+      setSummary(computeSummary(list));
+    } catch {
+      // Sem sessão/backend: cai nos dados de exemplo para a tela não quebrar.
+      setRows(
+        samplePayments.map((s) => ({
+          id: s.id,
+          studentName: s.studentName,
+          amount: s.amount,
+          dueLabel: s.dueLabel,
+          status: s.status,
+        }))
+      );
+      setSummary({ receivedMonth: sampleFinanceSummary.receivedMonth, pending: sampleFinanceSummary.pending });
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   return (
     <View style={[styles.screen, { backgroundColor: tokens.surface.page, paddingTop: insets.top + spacing.lg }]}>
       <ScreenHeader title="Financeiro" subtitle="Controle de pagamentos" />
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <Card style={styles.summary}>
-          <View style={styles.summaryCol}>
-            <Text style={[styles.summaryLabel, { color: tokens.text.secondary }]}>Recebido no mês</Text>
-            <Text style={[styles.summaryValue, { color: tokens.success.base }]}>
-              {formatCurrency(sampleFinanceSummary.receivedMonth)}
-            </Text>
-          </View>
-          <View style={[styles.summaryDivider, { backgroundColor: tokens.surface.divider }]} />
-          <View style={styles.summaryCol}>
-            <Text style={[styles.summaryLabel, { color: tokens.text.secondary }]}>Pendente</Text>
-            <Text style={[styles.summaryValue, { color: tokens.warning.base }]}>
-              {formatCurrency(sampleFinanceSummary.pending)}
-            </Text>
-          </View>
-        </Card>
+      {rows === null ? (
+        <View style={styles.center}>
+          <ActivityIndicator color={tokens.accent.base} />
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.content}>
+          <Card style={styles.summary}>
+            <View style={styles.summaryCol}>
+              <Text style={[styles.summaryLabel, { color: tokens.text.secondary }]}>Recebido no mês</Text>
+              <Text style={[styles.summaryValue, { color: tokens.success.base }]}>
+                {formatCurrency(summary.receivedMonth)}
+              </Text>
+            </View>
+            <View style={[styles.summaryDivider, { backgroundColor: tokens.surface.divider }]} />
+            <View style={styles.summaryCol}>
+              <Text style={[styles.summaryLabel, { color: tokens.text.secondary }]}>Pendente</Text>
+              <Text style={[styles.summaryValue, { color: tokens.warning.base }]}>
+                {formatCurrency(summary.pending)}
+              </Text>
+            </View>
+          </Card>
 
-        <Text style={[styles.sectionTitle, { color: tokens.text.primary }]}>Pagamentos</Text>
+          <Text style={[styles.sectionTitle, { color: tokens.text.primary }]}>Pagamentos</Text>
 
-        {payments.length === 0 ? (
-          <EmptyState icon="cash-multiple" title="Sem lançamentos" subtitle="Nada para exibir." />
-        ) : (
-          payments.map((p) => <PaymentRow key={p.id} payment={p} />)
-        )}
-      </ScrollView>
+          {rows.length === 0 ? (
+            <EmptyState icon="cash-multiple" title="Sem lançamentos" subtitle="Registre o 1º pagamento no botão +." />
+          ) : (
+            rows.map((p) => <PaymentRow key={p.id} payment={p} />)
+          )}
+        </ScrollView>
+      )}
 
       <FAB
         icon="plus"
         style={[styles.fab, { backgroundColor: tokens.accent.base }]}
         color={tokens.text.onAccent}
-        onPress={() => Alert.alert('Novo lançamento', 'Registro de pagamento em breve.')}
+        onPress={() => navigation.navigate('PagamentoForm')}
       />
     </View>
   );
 }
 
-function PaymentRow({ payment }: { payment: SamplePayment }) {
+function PaymentRow({ payment }: { payment: PayRow }) {
   const { tokens } = useAppTheme();
   const meta = PAYMENT_META[payment.status];
   return (
@@ -80,6 +156,7 @@ function PaymentRow({ payment }: { payment: SamplePayment }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: spacing.lg, paddingBottom: 96, gap: spacing.md },
 
   summary: { flexDirection: 'row', alignItems: 'center' },
