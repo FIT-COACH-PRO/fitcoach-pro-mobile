@@ -4,14 +4,17 @@ import { PaperProvider, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useAuth } from './src/hooks/useAuth';
+import { useAuthDeepLink } from './src/hooks/useAuthDeepLink';
 import { registerForPushNotifications } from './src/lib/notifications';
 import { AppNavigator } from './src/navigation';
-import { LoginScreen } from './src/screens/LoginScreen';
+import { AuthFlow } from './src/screens/AuthFlow';
+import { ResetPasswordConfirmScreen } from './src/screens/ResetPasswordConfirmScreen';
 import { lightTheme, darkTheme } from './src/theme';
 import { ThemeModeProvider, useThemeMode } from './src/theme/ThemeMode';
 
 function Root() {
   const { user, loading } = useAuth();
+  const { recoveryPending, clearRecovery } = useAuthDeepLink();
   const { mode } = useThemeMode();
   const scheme = useColorScheme();
   const isDark = mode === 'system' ? scheme === 'dark' : mode === 'dark';
@@ -26,14 +29,16 @@ function Root() {
   return (
     <PaperProvider theme={theme}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      {loading ? (
+      {recoveryPending ? (
+        <ResetPasswordConfirmScreen onDone={clearRecovery} />
+      ) : loading ? (
         <View style={[styles.center, { backgroundColor: theme.colors.background }]}>
           <ActivityIndicator color={theme.tokens.accent.base} />
         </View>
       ) : user ? (
         <AppNavigator theme={theme} />
       ) : (
-        <LoginScreen />
+        <AuthFlow />
       )}
     </PaperProvider>
   );

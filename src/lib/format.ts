@@ -85,3 +85,29 @@ export function formatCurrencyCompact(value: number): string {
       : thousands.toFixed(1).replace('.', ',');
   return `R$ ${text}k`;
 }
+
+/** "AAAA-MM-DD" → "Venc. DD/MM" (rótulo curto de vencimento). */
+export function formatVenc(iso: string): string {
+  const [, mm, dd] = iso.split('-');
+  return dd && mm ? `Venc. ${dd}/${mm}` : 'Venc. —';
+}
+
+/** Idade em anos a partir da data de nascimento ISO; undefined se ausente/inválida. */
+export function ageFrom(birth: string | null, now: Date = new Date()): number | undefined {
+  if (!birth) return undefined;
+  // Parse local (não UTC) para o dia não escorregar por fuso perto do aniversário.
+  const [by, bm, bd] = birth.slice(0, 10).split('-').map(Number);
+  if (!by || !bm || !bd) return undefined;
+  let a = now.getFullYear() - by;
+  const monthDiff = now.getMonth() - (bm - 1);
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < bd)) a--;
+  return a >= 0 ? a : undefined;
+}
+
+/** Rótulo de séries×reps de um exercício: "4 x 8", "4", "8-12" ou "—". */
+export function setsLabel(sets: number | null, reps: string | null): string {
+  if (sets != null && reps) return `${sets} x ${reps}`;
+  if (sets != null) return String(sets);
+  if (reps) return reps;
+  return '—';
+}

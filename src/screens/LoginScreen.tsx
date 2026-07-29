@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { View, StyleSheet, Image, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { TextInput, Text, TouchableRipple } from 'react-native-paper';
 import { useAuth } from '../hooks/useAuth';
 import { Card } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 
-export function LoginScreen() {
+export function LoginScreen({ onSignup, onForgot }: { onSignup: () => void; onForgot: () => void }) {
   const { tokens } = useAppTheme();
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
@@ -63,7 +63,7 @@ export function LoginScreen() {
         />
 
         <TouchableRipple
-          onPress={() => Alert.alert('Recuperar senha', 'Recuperação de senha em breve.')}
+          onPress={onForgot}
           style={styles.forgot}
           borderless
         >
@@ -86,7 +86,7 @@ export function LoginScreen() {
         <View style={styles.signup}>
           <Text style={{ color: tokens.text.secondary }}>Não tem conta? </Text>
           <TouchableRipple
-            onPress={() => Alert.alert('Cadastro', 'Cadastro de novos personais em breve.')}
+            onPress={onSignup}
             borderless
           >
             <Text style={[styles.signupLink, { color: tokens.accent.base }]}>Cadastre-se grátis</Text>

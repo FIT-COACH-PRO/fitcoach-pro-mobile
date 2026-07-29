@@ -1,8 +1,10 @@
 import { supabase } from '../lib/supabase';
 import type {
+  Profile,
   Student,
   Workout,
   Session,
+  Payment,
   DashboardStats,
   UpcomingRenewal,
 } from '../types/database';
@@ -106,6 +108,73 @@ export async function listStudents(): Promise<Student[]> {
   return (data ?? []) as Student[];
 }
 
+/** Um aluno do trainer logado (para a tela de detalhe). */
+export async function getStudent(id: string): Promise<Student> {
+  const trainerId = await requireUserId();
+  const { data, error } = await supabase
+    .from('students')
+    .select('*')
+    .eq('trainer_id', trainerId)
+    .eq('id', id)
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as Student;
+}
+
+/** Campos que o trainer preenche ao cadastrar/editar um aluno. */
+export type StudentInput = {
+  full_name: string;
+  whatsapp: string;
+  email?: string | null;
+  status: Student['status'];
+  objective?: string | null;
+  monthly_fee?: number | null;
+};
+
+/** Cadastra um aluno. RLS garante trainer_id = auth.uid() (migration 001). */
+export async function createStudent(input: StudentInput): Promise<Student> {
+  const trainerId = await requireUserId();
+  const { data, error } = await supabase
+    .from('students')
+    .insert({
+      trainer_id: trainerId,
+      full_name: input.full_name,
+      whatsapp: input.whatsapp,
+      email: input.email ?? null,
+      status: input.status,
+      objective: input.objective ?? null,
+      monthly_fee: input.monthly_fee ?? null,
+    })
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as Student;
+}
+
+/** Atualiza um aluno existente do trainer logado. */
+export async function updateStudent(id: string, input: StudentInput): Promise<Student> {
+  const trainerId = await requireUserId();
+  const { data, error } = await supabase
+    .from('students')
+    .update({
+      full_name: input.full_name,
+      whatsapp: input.whatsapp,
+      email: input.email ?? null,
+      status: input.status,
+      objective: input.objective ?? null,
+      monthly_fee: input.monthly_fee ?? null,
+    })
+    .eq('trainer_id', trainerId)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as Student;
+}
+
 export async function listWorkouts(): Promise<Workout[]> {
   const trainerId = await requireUserId();
   const { data, error } = await supabase
@@ -118,6 +187,107 @@ export async function listWorkouts(): Promise<Workout[]> {
   return (data ?? []) as Workout[];
 }
 
+/** Um treino com dias e exercícios aninhados (para a tela de detalhe). */
+export async function getWorkout(id: string): Promise<Workout> {
+  const trainerId = await requireUserId();
+  const { data, error } = await supabase
+    .from('workouts')
+    .select('*, workout_days(*, workout_exercises(*))')
+    .eq('trainer_id', trainerId)
+    .eq('id', id)
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as Workout;
+}
+
+export type WorkoutExerciseInput = {
+  exercise_name: string;
+  sets?: number | null;
+  reps?: string | null;
+  weight?: string | null;
+};
+
+export type WorkoutDayInput = {
+  name: string; // rótulo do dia, ex.: "Treino A"
+  exercises: WorkoutExerciseInput[];
+};
+
+export type WorkoutInput = {
+  name: string;
+  student_id?: string | null;
+  difficulty?: Workout['difficulty'];
+  description?: string | null;
+  days: WorkoutDayInput[];
+};
+
+/**
+ * Cria um treino em cascata: workouts → workout_days → workout_exercises.
+ * Sem transação no cliente: em caso de falha após criar o workout, apaga-o
+ * (o ON DELETE CASCADE remove dias/exercícios) para não deixar órfão.
+ */
+export async function createWorkout(input: WorkoutInput): Promise<Workout> {
+  const trainerId = await requireUserId();
+
+  const { data: workout, error: wErr } = await supabase
+    .from('workouts')
+    .insert({
+      trainer_id: trainerId,
+      student_id: input.student_id ?? null,
+      name: input.name,
+      description: input.description ?? null,
+      difficulty: input.difficulty ?? null,
+      days_per_week: input.days.length,
+      type: 'custom',
+    })
+    .select()
+    .single();
+
+  if (wErr) throw new Error(wErr.message);
+  const workoutId = (workout as Workout).id;
+
+  try {
+    const daysPayload = input.days.map((d, i) => ({
+      workout_id: workoutId,
+      name: d.name,
+      day_label: d.name,
+      day_order: i,
+    }));
+    const { data: days, error: dErr } = await supabase
+      .from('workout_days')
+      .insert(daysPayload)
+      .select('id, day_order');
+    if (dErr) throw new Error(dErr.message);
+
+    const sortedDays = ([...(days ?? [])] as { id: string; day_order: number }[]).sort(
+      (a, b) => a.day_order - b.day_order
+    );
+
+    const exPayload = sortedDays.flatMap((day, i) =>
+      input.days[i].exercises.map((ex, j) => ({
+        workout_day_id: day.id,
+        workout_id: workoutId,
+        exercise_name: ex.exercise_name,
+        sets: ex.sets ?? null,
+        reps: ex.reps ?? null,
+        weight: ex.weight ?? null,
+        exercise_order: j,
+      }))
+    );
+
+    if (exPayload.length > 0) {
+      const { error: eErr } = await supabase.from('workout_exercises').insert(exPayload);
+      if (eErr) throw new Error(eErr.message);
+    }
+
+    return workout as Workout;
+  } catch (e) {
+    // Limpeza best-effort para não deixar treino órfão.
+    await supabase.from('workouts').delete().eq('id', workoutId);
+    throw e;
+  }
+}
+
 export async function listSessions(): Promise<Session[]> {
   const trainerId = await requireUserId();
   const { data, error } = await supabase
@@ -128,6 +298,144 @@ export async function listSessions(): Promise<Session[]> {
 
   if (error) throw new Error(error.message);
   return (data ?? []) as Session[];
+}
+
+export async function listPayments(): Promise<Payment[]> {
+  const trainerId = await requireUserId();
+  const { data, error } = await supabase
+    .from('payments')
+    .select('*, student:students(full_name)')
+    .eq('trainer_id', trainerId)
+    .order('due_date', { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Payment[];
+}
+
+/** Campos que o trainer preenche ao registrar um pagamento. */
+export type PaymentInput = {
+  student_id: string;
+  amount: number;
+  due_date: string; // ISO (YYYY-MM-DD)
+  status: Payment['status'];
+  payment_method?: Payment['payment_method'];
+  payment_date?: string | null;
+};
+
+/** Registra um pagamento. RLS garante trainer_id = auth.uid() (migration 001). */
+export async function createPayment(input: PaymentInput): Promise<Payment> {
+  const trainerId = await requireUserId();
+  const { data, error } = await supabase
+    .from('payments')
+    .insert({
+      trainer_id: trainerId,
+      student_id: input.student_id,
+      amount: input.amount,
+      due_date: input.due_date,
+      status: input.status,
+      payment_method: input.payment_method ?? null,
+      payment_date: input.payment_date ?? null,
+    })
+    .select('*, student:students(full_name)')
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as Payment;
+}
+
+/** Campos que o trainer preenche ao agendar uma aula. */
+export type SessionInput = {
+  student_id: string;
+  starts_at: string; // ISO
+  ends_at: string; // ISO
+};
+
+/** Agenda uma aula. A tabela impede sobreposição de horários (constraint EXCLUDE). */
+export async function createSession(input: SessionInput): Promise<Session> {
+  const trainerId = await requireUserId();
+  const { data, error } = await supabase
+    .from('sessions')
+    .insert({
+      trainer_id: trainerId,
+      student_id: input.student_id,
+      starts_at: input.starts_at,
+      ends_at: input.ends_at,
+    })
+    .select('*, student:students(full_name, whatsapp, whatsapp_opt_in)')
+    .single();
+
+  if (error) {
+    // 23P01 = exclusion_violation (janela de horário sobreposta com outra aula).
+    if (error.code === '23P01') throw new Error('Já existe uma aula nesse horário.');
+    throw new Error(error.message);
+  }
+  return data as Session;
+}
+
+/** Perfil do trainer logado. */
+export async function getProfile(): Promise<Profile> {
+  const trainerId = await requireUserId();
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', trainerId)
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as Profile;
+}
+
+/** Campos editáveis do perfil (cpf/e-mail/nascimento ficam de fora). */
+export type ProfileInput = {
+  full_name: string;
+  whatsapp: string;
+  phone?: string | null;
+  cref: string;
+  city: string;
+  state: string;
+  bio?: string | null;
+};
+
+export async function updateProfile(input: ProfileInput): Promise<Profile> {
+  const trainerId = await requireUserId();
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({
+      full_name: input.full_name,
+      whatsapp: input.whatsapp,
+      phone: input.phone ?? null,
+      cref: input.cref,
+      city: input.city,
+      state: input.state,
+      bio: input.bio ?? null,
+    })
+    .eq('id', trainerId)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+
+  // Mantém o metadata do auth em sincronia — Home e Configurações leem full_name de lá.
+  await supabase.auth.updateUser({ data: { full_name: input.full_name, whatsapp: input.whatsapp } });
+  return data as Profile;
+}
+
+/**
+ * Gera insights de IA para um aluno via Edge Function do Supabase.
+ * A chave da Anthropic fica no servidor (secret da função) — nunca no app.
+ * O `functions.invoke` envia o JWT do trainer, então a função respeita a RLS.
+ */
+export async function getStudentInsights(studentId: string): Promise<string> {
+  await requireUserId(); // garante sessão ativa antes de chamar a função
+  const { data, error } = await supabase.functions.invoke('student-insights', {
+    body: { student_id: studentId },
+  });
+  if (error) {
+    throw new Error('Não foi possível gerar os insights. Verifique se a função de IA está publicada.');
+  }
+  const text = (data as { insights?: string } | null)?.insights;
+  if (!text) throw new Error('A IA não retornou um resultado.');
+  return text;
 }
 
 /** Registra o token de push Expo no perfil do trainer (para lembretes). */

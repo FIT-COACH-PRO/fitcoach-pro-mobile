@@ -8,18 +8,27 @@ export type HomeStackParamList = {
 export type AlunosStackParamList = {
   AlunosList: undefined;
   AlunoDetalhe: { studentId: string };
+  AlunoForm: { studentId?: string } | undefined;
 };
 
 export type TreinosStackParamList = {
   TreinosList: undefined;
   TreinoDetalhe: { workoutId: string };
+  TreinoForm: undefined;
+};
+
+export type AgendaStackParamList = {
+  AgendaList: undefined;
+  AgendaForm: undefined;
 };
 
 export type MaisStackParamList = {
   MaisHub: undefined;
   Financeiro: undefined;
+  PagamentoForm: undefined;
   Notificacoes: undefined;
   Configuracoes: undefined;
+  PerfilForm: undefined;
   Comunidade: undefined;
 };
 
@@ -27,6 +36,6 @@ export type RootTabParamList = {
   HomeTab: NavigatorScreenParams<HomeStackParamList>;
   AlunosTab: NavigatorScreenParams<AlunosStackParamList>;
   TreinosTab: NavigatorScreenParams<TreinosStackParamList>;
-  AgendaTab: undefined;
+  AgendaTab: NavigatorScreenParams<AgendaStackParamList>;
   MaisTab: NavigatorScreenParams<MaisStackParamList>;
 };

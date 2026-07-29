@@ -15,5 +15,9 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
+    // PKCE: o link de e-mail (recuperação/confirmação) chega com ?code=...,
+    // trocado manualmente por sessão em useAuthDeepLink. Evita depender de
+    // token na fragment da URL, que não chega de forma confiável via deep link.
+    flowType: 'pkce',
   },
 });
