@@ -21,19 +21,6 @@
         "NSCalendarsFullAccessUsageDescription": "FitCoach precisa acessar sua agenda para criar e remover aulas."
       }
     },
-    "android": {
-      "package": "com.fitcoachpro.app",
-      "versionCode": 1,
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#EDE1C9"
-      },
-      "permissions": [
-        "READ_CALENDAR",
-        "WRITE_CALENDAR",
-        "POST_NOTIFICATIONS"
-      ]
-    },
     "plugins": [
       [
         "expo-calendar",
