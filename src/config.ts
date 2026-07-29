@@ -2,8 +2,9 @@ import Constants from 'expo-constants';
 
 function required(value: string | undefined, name: string): string {
   if (!value) {
-    console.warn(`[config] Variável ${name} não definida. Confira o .env`);
-    return '';
+    throw new Error(
+      `[config] Variável ${name} não definida. Confira o .env (ou extra.eas em app.json/eas.json no build).`
+    );
   }
   return value;
 }
