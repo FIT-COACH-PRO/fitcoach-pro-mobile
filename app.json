@@ -15,7 +15,7 @@
     },
     "ios": {
       "bundleIdentifier": "com.fitcoachpro.app",
-      "supportsTablet": true,
+      "supportsTablet": false,
       "infoPlist": {
         "NSCalendarsUsageDescription": "FitCoach precisa acessar sua agenda para sincronizar aulas.",
         "NSCalendarsFullAccessUsageDescription": "FitCoach precisa acessar sua agenda para criar e remover aulas."
