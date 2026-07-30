@@ -79,7 +79,7 @@ export function FinanceiroScreen() {
           <Card style={styles.summary}>
             <View style={styles.summaryCol}>
               <Text style={[styles.summaryLabel, { color: tokens.text.secondary }]}>Recebido no mês</Text>
-              <Text style={[styles.summaryValue, { color: tokens.success.base }]}>
+              <Text style={[styles.summaryValue, { color: tokens.accent.base }]}>
                 {formatCurrency(summary.receivedMonth)}
               </Text>
             </View>
@@ -124,7 +124,7 @@ function PaymentRow({ payment }: { payment: PayRow }) {
         <Text style={[styles.rowDue, { color: tokens.text.secondary }]}>{payment.dueLabel}</Text>
       </View>
       <View style={styles.rowRight}>
-        <Text style={[styles.rowAmount, { color: tokens.text.primary }]}>
+        <Text style={[styles.rowAmount, { color: tokens.accent.base }]}>
           {formatCurrency(payment.amount)}
         </Text>
         <StatusBadge label={meta.label} tone={meta.tone} />

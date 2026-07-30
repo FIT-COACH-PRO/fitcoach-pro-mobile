@@ -142,8 +142,8 @@ export function HomeScreen() {
             value={formatCurrencyCompact(stats.monthly_revenue)}
             label="Receita do mês"
             icon="wallet-outline"
-            tone="success"
-            valueColor={tokens.success.base}
+            tone="accent"
+            valueColor={tokens.accent.base}
           />
           <StatCard
             value={stats.pending_payments}
@@ -253,7 +253,7 @@ function RenewalRow({
         </Text>
       </View>
 
-      <Text style={[styles.renewalValue, { color: tokens.success.base }]}>
+      <Text style={[styles.renewalValue, { color: tokens.accent.base }]}>
         {formatCurrency(renewal.monthly_fee)}
       </Text>
     </View>
