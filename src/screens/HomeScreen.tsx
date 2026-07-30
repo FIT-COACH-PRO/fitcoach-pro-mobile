@@ -2,12 +2,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Text, ActivityIndicator, Icon, TouchableRipple } from 'react-native-paper';
 import { getDashboardStats, listUpcomingRenewals } from '../api/endpoints';
 import { useAuth } from '../hooks/useAuth';
 import type { DashboardStats, UpcomingRenewal } from '../types/database';
-import type { HomeStackParamList } from '../navigation/types';
+import type { HomeNavigationProp } from '../navigation/types';
+import { Avatar } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import { sampleDashboard, sampleRenewals } from '../data/sample';
 import {
@@ -16,6 +16,7 @@ import {
   formatDueDate,
   formatFullDate,
   greeting,
+  trainerDisplayName,
 } from '../lib/format';
 
 /** Cor de destaque do ícone de cada métrica (ver mapeamento visual → token). */
@@ -25,7 +26,7 @@ export function HomeScreen() {
   const theme = useAppTheme();
   const { tokens } = theme;
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const navigation = useNavigation<HomeNavigationProp>();
   const { user } = useAuth();
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -67,11 +68,8 @@ export function HomeScreen() {
   }
 
   const now = new Date();
-  const fullName =
-    (user?.user_metadata?.full_name as string | undefined) ??
-    user?.email?.split('@')[0] ??
-    '';
-  const firstName = fullName.trim().split(' ')[0];
+  const fullName = trainerDisplayName(user);
+  const firstName = fullName.split(' ')[0];
 
   return (
     <ScrollView
@@ -99,17 +97,25 @@ export function HomeScreen() {
           </Text>
         </View>
 
-        <TouchableRipple
-          onPress={() => navigation.navigate('Notificacoes')}
-          style={[styles.bell, { backgroundColor: tokens.surface.card }]}
-          borderless
-          accessibilityLabel="Notificações"
-        >
-          <View style={styles.bellInner}>
-            <Icon source="bell-outline" size={22} color={tokens.text.primary} />
-            <View style={[styles.bellDot, { backgroundColor: tokens.accent.base }]} />
-          </View>
-        </TouchableRipple>
+        <View style={styles.headerActions}>
+          <TouchableRipple
+            onPress={() => navigation.navigate('Notificacoes')}
+            style={[styles.bell, { backgroundColor: tokens.surface.card }]}
+            borderless
+            accessibilityLabel="Notificações"
+          >
+            <View style={styles.bellInner}>
+              <Icon source="bell-outline" size={22} color={tokens.text.primary} />
+            </View>
+          </TouchableRipple>
+          <TouchableRipple
+            onPress={() => navigation.navigate('Perfil', { screen: 'PerfilHub' })}
+            borderless
+            accessibilityLabel="Perfil"
+          >
+            <Avatar name={fullName || '?'} color={tokens.accent.base} size={36} />
+          </TouchableRipple>
+        </View>
       </View>
 
       {stats && (
@@ -271,20 +277,13 @@ const styles = StyleSheet.create({
   headerText: { flex: 1, gap: 2 },
   greeting: { fontSize: fontSize.xl, fontWeight: '700' },
   date: { fontSize: fontSize.sm },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   bell: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: radius.pill,
   },
   bellInner: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  bellDot: {
-    position: 'absolute',
-    top: 6,
-    right: 8,
-    width: 9,
-    height: 9,
-    borderRadius: radius.pill,
-  },
 
   grid: {
     flexDirection: 'row',

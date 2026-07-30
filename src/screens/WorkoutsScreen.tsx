@@ -2,14 +2,15 @@ import { useCallback, useMemo, useState } from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Searchbar, TouchableRipple, Text, Icon, FAB, ActivityIndicator } from 'react-native-paper';
 import { ScreenHeader, EmptyState } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import { listWorkouts } from '../api/endpoints';
+import { useAuth } from '../hooks/useAuth';
+import { trainerDisplayName } from '../lib/format';
 import { sampleWorkouts } from '../data/sample';
 import type { Workout } from '../types/database';
-import type { TreinosStackParamList } from '../navigation/types';
+import type { TreinosListNavigationProp } from '../navigation/types';
 
 const DIFF_LABEL: Record<NonNullable<Workout['difficulty']>, string> = {
   beginner: 'Iniciante',
@@ -29,7 +30,9 @@ const fromWorkout = (w: Workout): Row => ({
 export function WorkoutsScreen() {
   const { tokens } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NativeStackNavigationProp<TreinosStackParamList>>();
+  const navigation = useNavigation<TreinosListNavigationProp>();
+  const { user } = useAuth();
+  const trainerName = trainerDisplayName(user);
   const [query, setQuery] = useState('');
   const [rows, setRows] = useState<Row[] | null>(null);
 
@@ -56,7 +59,13 @@ export function WorkoutsScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: tokens.surface.page, paddingTop: insets.top + spacing.lg }]}>
-      <ScreenHeader title="Treinos" subtitle="Modelos e prescrições" />
+      <ScreenHeader
+        title="Treinos"
+        subtitle="Modelos e prescrições"
+        trainerName={trainerName || '?'}
+        onNotificationsPress={() => navigation.navigate('Notificacoes')}
+        onProfilePress={() => navigation.navigate('Perfil', { screen: 'PerfilHub' })}
+      />
 
       <View style={styles.controls}>
         <Searchbar

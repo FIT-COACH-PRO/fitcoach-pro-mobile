@@ -9,13 +9,13 @@ import { useAuth } from '../hooks/useAuth';
 import { sendLocalNotification } from '../lib/notifications';
 import { requestCalendarPermission } from '../lib/calendar';
 import { sampleProfile } from '../data/sample';
-import type { MaisStackParamList } from '../navigation/types';
+import type { PerfilStackParamList } from '../navigation/types';
 
 export function ConfiguracoesScreen() {
   const { tokens } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { user, signOut } = useAuth();
-  const navigation = useNavigation<NativeStackNavigationProp<MaisStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<PerfilStackParamList>>();
 
   const name = (user?.user_metadata?.full_name as string | undefined) ?? sampleProfile.name;
   const email = user?.email ?? sampleProfile.email;

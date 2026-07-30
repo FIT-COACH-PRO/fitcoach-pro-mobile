@@ -11,7 +11,7 @@ import { samplePayments, sampleFinanceSummary } from '../data/sample';
 import { formatCurrency, formatVenc } from '../lib/format';
 import { computeSummary, type FinanceSummary } from '../lib/finance';
 import type { Payment } from '../types/database';
-import type { MaisStackParamList } from '../navigation/types';
+import type { PerfilStackParamList } from '../navigation/types';
 
 const PAYMENT_META: Record<Payment['status'], { label: string; tone: Tone }> = {
   paid: { label: 'Pago', tone: 'success' },
@@ -35,7 +35,7 @@ function toRow(p: Payment): PayRow {
 export function FinanceiroScreen() {
   const { tokens } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NativeStackNavigationProp<MaisStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<PerfilStackParamList>>();
 
   const [rows, setRows] = useState<PayRow[] | null>(null);
   const [summary, setSummary] = useState<FinanceSummary>({ receivedMonth: 0, pending: 0 });

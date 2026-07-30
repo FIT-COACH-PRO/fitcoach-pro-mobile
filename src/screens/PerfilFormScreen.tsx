@@ -6,9 +6,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, ErrorState } from '../components/ui';
 import { getProfile, updateProfile } from '../api/endpoints';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
-import type { MaisStackParamList } from '../navigation/types';
+import type { PerfilStackParamList } from '../navigation/types';
 
-type Props = NativeStackScreenProps<MaisStackParamList, 'PerfilForm'>;
+type Props = NativeStackScreenProps<PerfilStackParamList, 'PerfilForm'>;
 
 export function PerfilFormScreen({ navigation }: Props) {
   const { tokens } = useAppTheme();

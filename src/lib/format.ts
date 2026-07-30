@@ -111,3 +111,9 @@ export function setsLabel(sets: number | null, reps: string | null): string {
   if (reps) return reps;
   return '—';
 }
+
+/** Nome do trainer para saudação/avatar: full_name do metadata, senão o local-part do e-mail. */
+export function trainerDisplayName(user: { user_metadata?: { full_name?: unknown }; email?: string } | null): string {
+  const fullName = (user?.user_metadata?.full_name as string | undefined) ?? user?.email?.split('@')[0] ?? '';
+  return fullName.trim();
+}
