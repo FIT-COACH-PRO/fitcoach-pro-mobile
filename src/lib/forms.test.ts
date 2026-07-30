@@ -1,4 +1,4 @@
-import { pad, todayBR, brToIso, toLocalDate, parseMoney, sameDay } from './forms';
+import { pad, todayBR, brToIso, isoToBr, toLocalDate, parseMoney, sameDay, maskWhatsapp } from './forms';
 
 describe('pad', () => {
   it('preenche com zero à esquerda', () => {
@@ -31,6 +31,19 @@ describe('brToIso', () => {
   });
 });
 
+describe('isoToBr', () => {
+  it('converte ISO para DD/MM/AAAA', () => {
+    expect(isoToBr('2026-07-14')).toBe('14/07/2026');
+    expect(isoToBr('2026-07-14T00:00:00.000Z')).toBe('14/07/2026');
+  });
+  it('retorna string vazia para nulo/vazio/inválido', () => {
+    expect(isoToBr(null)).toBe('');
+    expect(isoToBr(undefined)).toBe('');
+    expect(isoToBr('')).toBe('');
+    expect(isoToBr('abc')).toBe('');
+  });
+});
+
 describe('toLocalDate', () => {
   it('monta um Date local a partir de data + hora', () => {
     const d = toLocalDate('14/07/2026', '08:30');
@@ -60,6 +73,22 @@ describe('parseMoney', () => {
     expect(parseMoney('')).toBeNull();
     expect(parseMoney('abc')).toBeNull();
     expect(parseMoney('R$ ')).toBeNull();
+  });
+});
+
+describe('maskWhatsapp', () => {
+  it('aplica a máscara progressivamente enquanto digita', () => {
+    expect(maskWhatsapp('1')).toBe('(1');
+    expect(maskWhatsapp('11')).toBe('(11');
+    expect(maskWhatsapp('119')).toBe('(11) 9');
+    expect(maskWhatsapp('11999999999')).toBe('(11) 99999-9999');
+  });
+  it('ignora caracteres não numéricos e limita a 11 dígitos', () => {
+    expect(maskWhatsapp('(11) 99999-9999')).toBe('(11) 99999-9999');
+    expect(maskWhatsapp('11999999999999')).toBe('(11) 99999-9999');
+  });
+  it('string vazia permanece vazia', () => {
+    expect(maskWhatsapp('')).toBe('');
   });
 });
 
