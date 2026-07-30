@@ -7,6 +7,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, StatusBadge, Card, EmptyState, ErrorState, type Tone } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import { getStudent, getStudentInsights } from '../api/endpoints';
+import { INSIGHTS_ENABLED } from '../config';
 import { ageFrom } from '../lib/format';
 import { sampleStudents, type SampleStudent, type StudentStatus } from '../data/sample';
 import type { Student } from '../types/database';
@@ -225,18 +226,27 @@ export function AlunoDetalheScreen({ route, navigation }: Props) {
               </Text>
             </View>
           </View>
-          {iaText && (
+          {INSIGHTS_ENABLED && iaText && (
             <Text style={[styles.iaResult, { color: tokens.text.secondary }]}>{iaText}</Text>
           )}
-          {iaError && <ErrorState message={iaError} onRetry={generateInsights} />}
+          {INSIGHTS_ENABLED && iaError && <ErrorState message={iaError} onRetry={generateInsights} />}
           <TouchableRipple
             onPress={generateInsights}
-            disabled={iaLoading}
-            style={[styles.iaBtn, { backgroundColor: tokens.accent.base, opacity: iaLoading ? 0.7 : 1 }]}
+            disabled={!INSIGHTS_ENABLED || iaLoading}
+            style={[
+              styles.iaBtn,
+              { backgroundColor: tokens.accent.base, opacity: !INSIGHTS_ENABLED || iaLoading ? 0.5 : 1 },
+            ]}
             borderless
           >
             <Text style={[styles.btnText, { color: tokens.text.onAccent }]}>
-              {iaLoading ? 'Gerando…' : iaText ? 'Gerar novamente' : 'Gerar insights'}
+              {!INSIGHTS_ENABLED
+                ? 'Disponível em breve'
+                : iaLoading
+                  ? 'Gerando…'
+                  : iaText
+                    ? 'Gerar novamente'
+                    : 'Gerar insights'}
             </Text>
           </TouchableRipple>
         </Card>

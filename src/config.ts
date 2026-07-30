@@ -21,3 +21,7 @@ export const SUPABASE_ANON_KEY = required(
     (Constants.expoConfig?.extra?.supabaseAnonKey as string | undefined),
   'EXPO_PUBLIC_SUPABASE_ANON_KEY'
 );
+
+// Piloto: insights de IA desativados (ver redesign-dark-ui.md Fase 5). Card
+// continua visível, botão desabilitado — zero chamadas à Edge Function.
+export const INSIGHTS_ENABLED = false;
