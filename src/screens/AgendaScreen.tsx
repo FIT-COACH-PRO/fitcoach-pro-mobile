@@ -198,5 +198,5 @@ const styles = StyleSheet.create({
   sessionInfo: { flex: 1, gap: 2 },
   sessionName: { fontSize: fontSize.md, fontWeight: '600' },
   sessionDur: { fontSize: fontSize.sm },
-  fab: { position: 'absolute', right: spacing.lg, bottom: spacing.lg, borderRadius: radius.lg },
+  fab: { position: 'absolute', right: spacing.lg, bottom: spacing.lg, borderRadius: radius.pill },
 });

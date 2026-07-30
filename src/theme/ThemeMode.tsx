@@ -10,14 +10,15 @@ type ThemeModeContext = {
   setMode: (mode: ThemeMode) => void;
 };
 
-const Ctx = createContext<ThemeModeContext>({ mode: 'light', setMode: () => {} });
+const Ctx = createContext<ThemeModeContext>({ mode: 'dark', setMode: () => {} });
 
 /**
- * Preferência de tema do usuário. Padrão: 'light' (bege). 'system' segue o
- * esquema do aparelho. Persistida no AsyncStorage.
+ * Preferência de tema do usuário. Padrão: 'dark' (redesign-dark-ui.md Fase 1
+ * — único tema do app; o seletor foi retirado da UI, mas a infraestrutura de
+ * 'light'/'system' permanece para uso futuro). Persistida no AsyncStorage.
  */
 export function ThemeModeProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>('light');
+  const [mode, setModeState] = useState<ThemeMode>('dark');
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then((saved) => {

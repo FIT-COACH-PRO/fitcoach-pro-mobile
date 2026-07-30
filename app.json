@@ -31,7 +31,9 @@
       "permissions": [
         "READ_CALENDAR",
         "WRITE_CALENDAR",
-        "POST_NOTIFICATIONS"
+        "POST_NOTIFICATIONS",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
       ]
     },
     "plugins": [
@@ -55,7 +57,11 @@
     ],
     "extra": {
       "supabaseUrl": "${EXPO_PUBLIC_SUPABASE_URL}",
-      "supabaseAnonKey": "${EXPO_PUBLIC_SUPABASE_ANON_KEY}"
-    }
+      "supabaseAnonKey": "${EXPO_PUBLIC_SUPABASE_ANON_KEY}",
+      "eas": {
+        "projectId": "f1ecdafa-c9e9-4d80-9320-14a76b5e3fb8"
+      }
+    },
+    "owner": "fit-coachpro"
   }
 }

@@ -143,5 +143,5 @@ const styles = StyleSheet.create({
   rowInfo: { flex: 1, gap: 2 },
   rowName: { fontSize: fontSize.md, fontWeight: '600' },
   rowLevel: { fontSize: fontSize.sm },
-  fab: { position: 'absolute', right: spacing.lg, bottom: spacing.lg, borderRadius: radius.lg },
+  fab: { position: 'absolute', right: spacing.lg, bottom: spacing.lg, borderRadius: radius.pill },
 });

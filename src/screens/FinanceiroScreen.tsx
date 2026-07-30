@@ -158,5 +158,5 @@ const styles = StyleSheet.create({
   rowDue: { fontSize: fontSize.sm },
   rowRight: { alignItems: 'flex-end', gap: spacing.xs },
   rowAmount: { fontSize: fontSize.md, fontWeight: '700' },
-  fab: { position: 'absolute', right: spacing.lg, bottom: spacing.lg, borderRadius: radius.lg },
+  fab: { position: 'absolute', right: spacing.lg, bottom: spacing.lg, borderRadius: radius.pill },
 });
