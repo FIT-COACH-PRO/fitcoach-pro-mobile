@@ -2,8 +2,9 @@ import Constants from 'expo-constants';
 
 function required(value: string | undefined, name: string): string {
   if (!value) {
-    console.warn(`[config] Variável ${name} não definida. Confira o .env`);
-    return '';
+    throw new Error(
+      `[config] Variável ${name} não definida. Confira o .env (ou extra.eas em app.json/eas.json no build).`
+    );
   }
   return value;
 }
@@ -20,3 +21,7 @@ export const SUPABASE_ANON_KEY = required(
     (Constants.expoConfig?.extra?.supabaseAnonKey as string | undefined),
   'EXPO_PUBLIC_SUPABASE_ANON_KEY'
 );
+
+// Piloto: insights de IA desativados (ver redesign-dark-ui.md Fase 5). Card
+// continua visível, botão desabilitado — zero chamadas à Edge Function.
+export const INSIGHTS_ENABLED = false;

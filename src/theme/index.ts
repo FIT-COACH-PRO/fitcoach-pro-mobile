@@ -16,48 +16,48 @@ export type ThemeTokens = {
 export type AppTheme = MD3Theme & { tokens: ThemeTokens };
 
 /**
- * Tokens do modo escuro — conforme o mockup dark (fundo quase preto, acento VERDE).
- *
- * ⚠️  Diferente do light, aqui o acento de ação é verde (não laranja). É intencional:
- * o mockup dark usa verde para botões, FAB e aba ativa; o light usa laranja-brasa.
+ * Tokens do modo escuro — redesign dark UI (acento laranja vibrante).
+ * Único tema do app; ver redesign-dark-ui.md Fase 1.
  */
 const darkTokens: ThemeTokens = {
   surface: {
-    page: '#0E0E10', // fundo do app — quase preto
-    card: '#1A1A1D', // cards e superfícies elevadas
-    sunken: '#26262A', // círculos de ícone, chips
-    divider: '#2C2C31', // linhas divisórias, borders sutis
+    page: '#14100C',
+    card: '#221B14',
+    sunken: '#2C241B',
+    divider: '#3A2F24',
     frame: '#000000',
   },
   text: {
-    primary: '#F4F4F5', // títulos, números
-    secondary: '#A1A1AA', // labels, datas, subtítulos
-    muted: '#6B6B72', // placeholder, desabilitado
-    onDark: '#F4F4F5',
-    onAccent: '#052012', // texto sobre o verde vivo
+    primary: '#F4EFE8',
+    secondary: '#A6988A',
+    muted: '#6E6257',
+    onDark: '#F4EFE8',
+    onAccent: '#FFFFFF',
   },
   accent: {
-    base: '#22C55E', // verde vivo — ação, CTA, item ativo
-    hover: '#16A34A',
-    pressed: '#15803D',
-    subtle: '#14331F', // background de badges/realces sutis
+    base: '#F0641E',
+    hover: '#D5541A',
+    pressed: '#B8460F',
+    subtle: '#3A2415',
   },
   success: {
-    base: '#4ADE80', // valores, dinheiro — verde claro
-    hover: '#22C55E',
-    subtle: '#14331F',
+    base: '#5BBF6B',
+    hover: '#4AA85A',
+    subtle: '#1E3322',
   },
   warning: {
-    base: '#FBBF24', // pendências — âmbar
-    subtle: '#3A2A0E',
+    base: '#E8A13D',
+    subtle: '#382A14',
   },
   danger: {
-    base: '#F87171', // crítico/atrasado — vermelho
-    hover: '#EF4444',
-    subtle: '#3A1A1A',
+    base: '#E05252',
+    hover: '#C74444',
+    subtle: '#381A1A',
   },
 };
 
+// Paleta bege/laranja-brasa do tema claro anterior — sem uso desde o redesign
+// dark (redesign-dark-ui.md Fase 1). Mantida no código, não apagar.
 const lightTokens: ThemeTokens = colors;
 
 /** Mapeia os tokens semânticos nos slots de cor do MD3 (Paper). */

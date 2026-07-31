@@ -111,3 +111,30 @@ export function setsLabel(sets: number | null, reps: string | null): string {
   if (reps) return reps;
   return '—';
 }
+
+/** Timestamp relativo curto: "agora", "há 5min", "há 2h", "ontem" ou "DD/MM". */
+export function formatTimeAgo(iso: string, now: Date = new Date()): string {
+  const then = new Date(iso);
+  const diffMin = Math.floor((now.getTime() - then.getTime()) / 60_000);
+  if (diffMin < 1) return 'agora';
+
+  // Dia de calendário sempre manda sobre "ontem"/"DD-MM", mesmo com <24h de diferença.
+  const diffDays = Math.round(
+    (startOfDay(now).getTime() - startOfDay(then).getTime()) / 86_400_000
+  );
+  if (diffDays >= 2) {
+    const dd = String(then.getDate()).padStart(2, '0');
+    const mm = String(then.getMonth() + 1).padStart(2, '0');
+    return `${dd}/${mm}`;
+  }
+  if (diffDays === 1) return 'ontem';
+
+  if (diffMin < 60) return `há ${diffMin}min`;
+  return `há ${Math.floor(diffMin / 60)}h`;
+}
+
+/** Nome do trainer para saudação/avatar: full_name do metadata, senão o local-part do e-mail. */
+export function trainerDisplayName(user: { user_metadata?: { full_name?: unknown }; email?: string } | null): string {
+  const fullName = (user?.user_metadata?.full_name as string | undefined) ?? user?.email?.split('@')[0] ?? '';
+  return fullName.trim();
+}

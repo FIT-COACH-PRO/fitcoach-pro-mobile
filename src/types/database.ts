@@ -217,6 +217,8 @@ export type Notification = {
   scheduled_for: string | null
   sent_at: string | null
   metadata: Json
+  read: boolean
+  read_at: string | null
   created_at: string
   updated_at: string
   student?: Student

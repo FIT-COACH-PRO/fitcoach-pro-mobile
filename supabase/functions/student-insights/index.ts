@@ -6,6 +6,11 @@
 // encaminha o JWT do trainer; usamos esse JWT para consultar o Supabase
 // respeitando a RLS (o trainer só enxerga os próprios alunos).
 //
+// Piloto — Fase 1: limite de 5 chamadas/dia por trainer, contado na tabela
+// insights_usage (migration 20260731_insights_usage.sql — precisa estar
+// aplicada antes do deploy desta versão). Rejeita explicitamente requisição
+// sem JWT válido em vez de depender do RLS devolver vazio por efeito colateral.
+//
 // Deploy (com o Supabase CLI):
 //   supabase functions deploy student-insights
 //   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
@@ -19,6 +24,8 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const DAILY_LIMIT = 5;
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -77,6 +84,26 @@ Deno.serve(async (req: Request) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
+    // Rejeita explicitamente sem JWT válido, em vez de deixar as queries
+    // seguintes falharem silenciosamente pela RLS.
+    const { data: authData, error: authErr } = await supabase.auth.getUser();
+    if (authErr || !authData.user) {
+      return json({ error: 'Não autenticado.' }, 401);
+    }
+    const trainerId = authData.user.id;
+
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: usageRow } = await supabase
+      .from('insights_usage')
+      .select('count')
+      .eq('trainer_id', trainerId)
+      .eq('usage_date', today)
+      .maybeSingle();
+    const usedToday = usageRow?.count ?? 0;
+    if (usedToday >= DAILY_LIMIT) {
+      return json({ error: `Limite diário de insights atingido (${DAILY_LIMIT}/dia). Tente novamente amanhã.` }, 429);
+    }
+
     const { data: student, error } = await supabase
       .from('students')
       .select(
@@ -111,6 +138,16 @@ Deno.serve(async (req: Request) => {
       .map((b) => (b.type === 'text' ? b.text : ''))
       .join('')
       .trim();
+
+    // Só incrementa após sucesso na chamada à Anthropic. Best-effort: uma
+    // falha aqui não deve esconder do trainer os insights já gerados.
+    try {
+      await supabase
+        .from('insights_usage')
+        .upsert({ trainer_id: trainerId, usage_date: today, count: usedToday + 1 }, { onConflict: 'trainer_id,usage_date' });
+    } catch {
+      // ignorado de propósito — contagem é best-effort, não pode derrubar a resposta.
+    }
 
     return json({ insights });
   } catch (e) {

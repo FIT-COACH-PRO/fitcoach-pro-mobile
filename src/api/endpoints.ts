@@ -7,6 +7,7 @@ import type {
   Payment,
   DashboardStats,
   UpcomingRenewal,
+  Notification,
 } from '../types/database';
 
 /**
@@ -128,7 +129,11 @@ export type StudentInput = {
   whatsapp: string;
   email?: string | null;
   status: Student['status'];
+  birth_date?: string | null;
+  gender?: Student['gender'];
   objective?: string | null;
+  observations?: string | null;
+  subscription_start?: string | null;
   monthly_fee?: number | null;
 };
 
@@ -143,7 +148,11 @@ export async function createStudent(input: StudentInput): Promise<Student> {
       whatsapp: input.whatsapp,
       email: input.email ?? null,
       status: input.status,
+      birth_date: input.birth_date ?? null,
+      gender: input.gender ?? null,
       objective: input.objective ?? null,
+      observations: input.observations ?? null,
+      subscription_start: input.subscription_start ?? null,
       monthly_fee: input.monthly_fee ?? null,
     })
     .select()
@@ -163,7 +172,11 @@ export async function updateStudent(id: string, input: StudentInput): Promise<St
       whatsapp: input.whatsapp,
       email: input.email ?? null,
       status: input.status,
+      birth_date: input.birth_date ?? null,
+      gender: input.gender ?? null,
       objective: input.objective ?? null,
+      observations: input.observations ?? null,
+      subscription_start: input.subscription_start ?? null,
       monthly_fee: input.monthly_fee ?? null,
     })
     .eq('trainer_id', trainerId)
@@ -205,6 +218,7 @@ export type WorkoutExerciseInput = {
   exercise_name: string;
   sets?: number | null;
   reps?: string | null;
+  rest_seconds?: number | null;
   weight?: string | null;
 };
 
@@ -218,6 +232,8 @@ export type WorkoutInput = {
   student_id?: string | null;
   difficulty?: Workout['difficulty'];
   description?: string | null;
+  duration_weeks?: number | null;
+  days_per_week?: number | null;
   days: WorkoutDayInput[];
 };
 
@@ -237,7 +253,8 @@ export async function createWorkout(input: WorkoutInput): Promise<Workout> {
       name: input.name,
       description: input.description ?? null,
       difficulty: input.difficulty ?? null,
-      days_per_week: input.days.length,
+      duration_weeks: input.duration_weeks ?? null,
+      days_per_week: input.days_per_week ?? null,
       type: 'custom',
     })
     .select()
@@ -270,6 +287,7 @@ export async function createWorkout(input: WorkoutInput): Promise<Workout> {
         exercise_name: ex.exercise_name,
         sets: ex.sets ?? null,
         reps: ex.reps ?? null,
+        rest_seconds: ex.rest_seconds ?? null,
         weight: ex.weight ?? null,
         exercise_order: j,
       }))
@@ -431,11 +449,57 @@ export async function getStudentInsights(studentId: string): Promise<string> {
     body: { student_id: studentId },
   });
   if (error) {
-    throw new Error('Não foi possível gerar os insights. Verifique se a função de IA está publicada.');
+    // Erros HTTP da função (limite atingido, não autenticado etc.) vêm no
+    // corpo JSON da resposta, acessível via error.context — repassa a
+    // mensagem real da função em vez de um texto genérico.
+    const context = (error as { context?: Response }).context;
+    const body = await context?.json().catch(() => null);
+    throw new Error(
+      (body as { error?: string } | null)?.error ??
+        'Não foi possível gerar os insights. Verifique se a função de IA está publicada.'
+    );
   }
   const text = (data as { insights?: string } | null)?.insights;
   if (!text) throw new Error('A IA não retornou um resultado.');
   return text;
+}
+
+/** Notificações do trainer autenticado, mais recentes primeiro. */
+export async function listNotifications(): Promise<Notification[]> {
+  const trainerId = await requireUserId();
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('*')
+    .eq('trainer_id', trainerId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Notification[];
+}
+
+/** Quantas notificações não lidas o trainer tem — usado só para o ponto do sino. */
+export async function countUnreadNotifications(): Promise<number> {
+  const trainerId = await requireUserId();
+  const { count, error } = await supabase
+    .from('notifications')
+    .select('id', { count: 'exact', head: true })
+    .eq('trainer_id', trainerId)
+    .eq('read', false);
+
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+
+/** Marca todas as notificações do trainer como lidas (piloto: sem marcação individual). */
+export async function markAllNotificationsRead(): Promise<void> {
+  const trainerId = await requireUserId();
+  const { error } = await supabase
+    .from('notifications')
+    .update({ read: true, read_at: new Date().toISOString() })
+    .eq('trainer_id', trainerId)
+    .eq('read', false);
+
+  if (error) throw new Error(error.message);
 }
 
 /** Registra o token de push Expo no perfil do trainer (para lembretes). */

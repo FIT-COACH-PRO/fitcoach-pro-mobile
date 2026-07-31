@@ -228,56 +228,6 @@ export const sampleFinanceSummary = {
   pending: 1180,
 };
 
-export type SampleNotificationKind =
-  | 'payment_received'
-  | 'renewal'
-  | 'workout_shared'
-  | 'sync_failed';
-
-export type SampleNotification = {
-  id: string;
-  kind: SampleNotificationKind;
-  title: string;
-  description: string;
-  timeLabel: string; // "Agora", "12 min", "1 h"
-  unread: boolean;
-};
-
-export const sampleNotifications: SampleNotification[] = [
-  {
-    id: 'n1',
-    kind: 'payment_received',
-    title: 'Pagamento recebido',
-    description: 'Ana Paula pagou a mensalidade.',
-    timeLabel: 'Agora',
-    unread: true,
-  },
-  {
-    id: 'n2',
-    kind: 'renewal',
-    title: 'Renovação próxima',
-    description: 'Bruno Lima renova em 2 dias.',
-    timeLabel: '12 min',
-    unread: true,
-  },
-  {
-    id: 'n3',
-    kind: 'workout_shared',
-    title: 'Treino compartilhado',
-    description: 'Diego abriu o treino A.',
-    timeLabel: '1 h',
-    unread: false,
-  },
-  {
-    id: 'n4',
-    kind: 'sync_failed',
-    title: 'Falha ao sincronizar',
-    description: 'Tente conectar sua agenda novamente.',
-    timeLabel: '3 h',
-    unread: false,
-  },
-];
-
 /** Resumo do dashboard (mesma forma do DashboardStats real). */
 export const sampleDashboard = {
   active_students: 42,

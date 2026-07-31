@@ -36,17 +36,32 @@ export function Screen({
   );
 }
 
-/** Cabeçalho grande com título + subtítulo, ação à direita e voltar opcional. */
+/**
+ * Cabeçalho grande com título + subtítulo, ação à direita e voltar opcional.
+ *
+ * `trainerName` + `onNotificationsPress` + `onProfilePress` renderizam o par
+ * padrão sino/avatar do redesign (Home, Alunos, Treinos, Agenda — ver
+ * redesign-dark-ui.md Fase 2). `hasUnread` acende o ponto laranja no sino
+ * (piloto Fase 2 — ver useUnreadNotifications).
+ */
 export function ScreenHeader({
   title,
   subtitle,
   right,
   onBack,
+  trainerName,
+  onNotificationsPress,
+  onProfilePress,
+  hasUnread,
 }: {
   title: string;
   subtitle?: string;
   right?: ReactNode;
   onBack?: () => void;
+  trainerName?: string;
+  onNotificationsPress?: () => void;
+  onProfilePress?: () => void;
+  hasUnread?: boolean;
 }) {
   const { tokens } = useAppTheme();
   return (
@@ -73,6 +88,24 @@ export function ScreenHeader({
           )}
         </View>
       </View>
+      {trainerName && onNotificationsPress && onProfilePress && (
+        <View style={styles.headerActions}>
+          <TouchableRipple
+            onPress={onNotificationsPress}
+            style={[styles.bellBtn, { backgroundColor: tokens.surface.card }]}
+            borderless
+            accessibilityLabel="Notificações"
+          >
+            <View>
+              <Icon source="bell-outline" size={20} color={tokens.text.primary} />
+              {hasUnread && <View style={[styles.bellDot, { backgroundColor: tokens.accent.base }]} />}
+            </View>
+          </TouchableRipple>
+          <TouchableRipple onPress={onProfilePress} borderless accessibilityLabel="Perfil">
+            <Avatar name={trainerName} color={tokens.accent.base} size={36} />
+          </TouchableRipple>
+        </View>
+      )}
       {right}
     </View>
   );
@@ -204,6 +237,23 @@ const styles = StyleSheet.create({
   headerText: { flex: 1, gap: 2 },
   headerTitle: { fontSize: fontSize.xl, fontWeight: '700' },
   headerSubtitle: { fontSize: fontSize.sm },
+
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  bellBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bellDot: {
+    position: 'absolute',
+    top: -1,
+    right: -1,
+    width: 9,
+    height: 9,
+    borderRadius: radius.pill,
+  },
 
   avatar: { alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontWeight: '700' },

@@ -2,14 +2,16 @@ import { useCallback, useMemo, useState } from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Searchbar, TouchableRipple, Text, Icon, FAB, ActivityIndicator } from 'react-native-paper';
 import { ScreenHeader, Avatar, StatusBadge, EmptyState, type Tone } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import { listStudents } from '../api/endpoints';
+import { useAuth } from '../hooks/useAuth';
+import { useUnreadNotifications } from '../hooks/useUnreadNotifications';
+import { trainerDisplayName } from '../lib/format';
 import { sampleStudents, type StudentStatus } from '../data/sample';
 import type { Student } from '../types/database';
-import type { AlunosStackParamList } from '../navigation/types';
+import type { AlunosListNavigationProp } from '../navigation/types';
 
 const STATUS_META: Record<StudentStatus, { label: string; tone: Tone }> = {
   active: { label: 'Ativo', tone: 'success' },
@@ -32,7 +34,10 @@ const fromStudent = (s: Student): Row => ({
 export function AlunosListScreen() {
   const { tokens } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NativeStackNavigationProp<AlunosStackParamList>>();
+  const navigation = useNavigation<AlunosListNavigationProp>();
+  const { user } = useAuth();
+  const trainerName = trainerDisplayName(user);
+  const hasUnread = useUnreadNotifications();
 
   const [rows, setRows] = useState<Row[] | null>(null);
   const [query, setQuery] = useState('');
@@ -70,7 +75,14 @@ export function AlunosListScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: tokens.surface.page, paddingTop: insets.top + spacing.lg }]}>
-      <ScreenHeader title="Alunos" subtitle="Gerencie seus alunos" />
+      <ScreenHeader
+        title="Alunos"
+        subtitle="Gerencie seus alunos"
+        trainerName={trainerName || '?'}
+        onNotificationsPress={() => navigation.navigate('Notificacoes')}
+        onProfilePress={() => navigation.navigate('Perfil', { screen: 'PerfilHub' })}
+        hasUnread={hasUnread}
+      />
 
       <View style={styles.controls}>
         <Searchbar
@@ -212,6 +224,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: spacing.lg,
     bottom: spacing.lg,
-    borderRadius: radius.lg,
+    borderRadius: radius.pill,
   },
 });

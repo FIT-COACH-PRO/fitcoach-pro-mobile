@@ -27,7 +27,7 @@ export function LoginScreen({ onSignup, onForgot }: { onSignup: () => void; onFo
       style={[styles.container, { backgroundColor: tokens.surface.page }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={[styles.logo, { backgroundColor: tokens.success.base }]}>
+      <View style={[styles.logo, { backgroundColor: tokens.surface.card }]}>
         <Image
           source={require('../../assets/icon.png')}
           style={styles.logoImg}
@@ -121,9 +121,10 @@ const styles = StyleSheet.create({
   forgotText: { fontSize: fontSize.sm, fontWeight: '600' },
   error: { fontSize: fontSize.sm },
   submit: {
+    height: 48,
     borderRadius: radius.md,
-    paddingVertical: spacing.md,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: spacing.sm,
   },
   submitText: { fontSize: fontSize.md, fontWeight: '700' },

@@ -2,15 +2,17 @@ import { useCallback, useMemo, useState } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Text, TouchableRipple, FAB, ActivityIndicator } from 'react-native-paper';
 import { ScreenHeader, StatusBadge, EmptyState, type Tone } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import { listSessions } from '../api/endpoints';
+import { useAuth } from '../hooks/useAuth';
+import { useUnreadNotifications } from '../hooks/useUnreadNotifications';
 import { pad, sameDay } from '../lib/forms';
+import { trainerDisplayName } from '../lib/format';
 import { sampleSessions } from '../data/sample';
 import type { Session } from '../types/database';
-import type { AgendaStackParamList } from '../navigation/types';
+import type { AgendaListNavigationProp } from '../navigation/types';
 
 const WEEKDAY_LETTERS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']; // Dom → Sáb
 const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
@@ -20,7 +22,10 @@ type SessionRowData = { id: string; time: string; studentName: string; durationM
 export function AgendaScreen() {
   const { tokens } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NativeStackNavigationProp<AgendaStackParamList>>();
+  const navigation = useNavigation<AgendaListNavigationProp>();
+  const { user } = useAuth();
+  const trainerName = trainerDisplayName(user);
+  const hasUnread = useUnreadNotifications();
 
   // Semana atual (domingo → sábado) com base em hoje.
   const week = useMemo(() => {
@@ -104,7 +109,14 @@ export function AgendaScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: tokens.surface.page, paddingTop: insets.top + spacing.lg }]}>
-      <ScreenHeader title="Agenda" subtitle={subtitle} />
+      <ScreenHeader
+        title="Agenda"
+        subtitle={subtitle}
+        trainerName={trainerName || '?'}
+        onNotificationsPress={() => navigation.navigate('Notificacoes')}
+        onProfilePress={() => navigation.navigate('Perfil', { screen: 'PerfilHub' })}
+        hasUnread={hasUnread}
+      />
 
       <View style={styles.week}>
         {week.map((d, i) => {
@@ -198,5 +210,5 @@ const styles = StyleSheet.create({
   sessionInfo: { flex: 1, gap: 2 },
   sessionName: { fontSize: fontSize.md, fontWeight: '600' },
   sessionDur: { fontSize: fontSize.sm },
-  fab: { position: 'absolute', right: spacing.lg, bottom: spacing.lg, borderRadius: radius.lg },
+  fab: { position: 'absolute', right: spacing.lg, bottom: spacing.lg, borderRadius: radius.pill },
 });

@@ -7,10 +7,10 @@ import { ScreenHeader, ErrorState, EmptyState } from '../components/ui';
 import { createPayment, listStudents } from '../api/endpoints';
 import { parseMoney, brToIso, todayBR } from '../lib/forms';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
-import type { MaisStackParamList } from '../navigation/types';
+import type { PerfilStackParamList } from '../navigation/types';
 import type { Student, Payment } from '../types/database';
 
-type Props = NativeStackScreenProps<MaisStackParamList, 'PagamentoForm'>;
+type Props = NativeStackScreenProps<PerfilStackParamList, 'PagamentoForm'>;
 
 const STATUS_OPTIONS: { value: Payment['status']; label: string }[] = [
   { value: 'pending', label: 'Pendente' },

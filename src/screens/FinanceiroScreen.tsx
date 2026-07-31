@@ -11,7 +11,7 @@ import { samplePayments, sampleFinanceSummary } from '../data/sample';
 import { formatCurrency, formatVenc } from '../lib/format';
 import { computeSummary, type FinanceSummary } from '../lib/finance';
 import type { Payment } from '../types/database';
-import type { MaisStackParamList } from '../navigation/types';
+import type { PerfilStackParamList } from '../navigation/types';
 
 const PAYMENT_META: Record<Payment['status'], { label: string; tone: Tone }> = {
   paid: { label: 'Pago', tone: 'success' },
@@ -35,7 +35,7 @@ function toRow(p: Payment): PayRow {
 export function FinanceiroScreen() {
   const { tokens } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NativeStackNavigationProp<MaisStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<PerfilStackParamList>>();
 
   const [rows, setRows] = useState<PayRow[] | null>(null);
   const [summary, setSummary] = useState<FinanceSummary>({ receivedMonth: 0, pending: 0 });
@@ -79,7 +79,7 @@ export function FinanceiroScreen() {
           <Card style={styles.summary}>
             <View style={styles.summaryCol}>
               <Text style={[styles.summaryLabel, { color: tokens.text.secondary }]}>Recebido no mês</Text>
-              <Text style={[styles.summaryValue, { color: tokens.success.base }]}>
+              <Text style={[styles.summaryValue, { color: tokens.accent.base }]}>
                 {formatCurrency(summary.receivedMonth)}
               </Text>
             </View>
@@ -124,7 +124,7 @@ function PaymentRow({ payment }: { payment: PayRow }) {
         <Text style={[styles.rowDue, { color: tokens.text.secondary }]}>{payment.dueLabel}</Text>
       </View>
       <View style={styles.rowRight}>
-        <Text style={[styles.rowAmount, { color: tokens.text.primary }]}>
+        <Text style={[styles.rowAmount, { color: tokens.accent.base }]}>
           {formatCurrency(payment.amount)}
         </Text>
         <StatusBadge label={meta.label} tone={meta.tone} />
@@ -158,5 +158,5 @@ const styles = StyleSheet.create({
   rowDue: { fontSize: fontSize.sm },
   rowRight: { alignItems: 'flex-end', gap: spacing.xs },
   rowAmount: { fontSize: fontSize.md, fontWeight: '700' },
-  fab: { position: 'absolute', right: spacing.lg, bottom: spacing.lg, borderRadius: radius.lg },
+  fab: { position: 'absolute', right: spacing.lg, bottom: spacing.lg, borderRadius: radius.pill },
 });

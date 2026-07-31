@@ -7,6 +7,7 @@ import {
   formatVenc,
   ageFrom,
   setsLabel,
+  formatTimeAgo,
 } from './format';
 
 describe('formatCurrency', () => {
@@ -76,6 +77,31 @@ describe('ageFrom', () => {
   it('trata ausente/inválida', () => {
     expect(ageFrom(null, now)).toBeUndefined();
     expect(ageFrom('não-é-data', now)).toBeUndefined();
+  });
+});
+
+describe('formatTimeAgo', () => {
+  const now = new Date(2026, 6, 14, 12, 0, 0); // terça, 14/07/2026 12:00
+
+  it('menos de 1 minuto vira "agora"', () => {
+    const iso = new Date(2026, 6, 14, 11, 59, 40).toISOString();
+    expect(formatTimeAgo(iso, now)).toBe('agora');
+  });
+  it('minutos', () => {
+    const iso = new Date(2026, 6, 14, 11, 45, 0).toISOString();
+    expect(formatTimeAgo(iso, now)).toBe('há 15min');
+  });
+  it('horas', () => {
+    const iso = new Date(2026, 6, 14, 9, 0, 0).toISOString();
+    expect(formatTimeAgo(iso, now)).toBe('há 3h');
+  });
+  it('ontem (dia de calendário anterior, mesmo com menos de 24h)', () => {
+    const iso = new Date(2026, 6, 13, 23, 0, 0).toISOString();
+    expect(formatTimeAgo(iso, now)).toBe('ontem');
+  });
+  it('mais antigo vira DD/MM', () => {
+    const iso = new Date(2026, 6, 10, 8, 0, 0).toISOString();
+    expect(formatTimeAgo(iso, now)).toBe('10/07');
   });
 });
 

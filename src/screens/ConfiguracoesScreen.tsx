@@ -5,34 +5,20 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Text, Icon, TouchableRipple } from 'react-native-paper';
 import { ScreenHeader, Avatar, Card } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
-import { useThemeMode, THEME_MODE_LABEL, type ThemeMode } from '../theme/ThemeMode';
 import { useAuth } from '../hooks/useAuth';
 import { sendLocalNotification } from '../lib/notifications';
 import { requestCalendarPermission } from '../lib/calendar';
 import { sampleProfile } from '../data/sample';
-import type { MaisStackParamList } from '../navigation/types';
+import type { PerfilStackParamList } from '../navigation/types';
 
 export function ConfiguracoesScreen() {
   const { tokens } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { user, signOut } = useAuth();
-  const { mode, setMode } = useThemeMode();
-  const navigation = useNavigation<NativeStackNavigationProp<MaisStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<PerfilStackParamList>>();
 
   const name = (user?.user_metadata?.full_name as string | undefined) ?? sampleProfile.name;
   const email = user?.email ?? sampleProfile.email;
-
-  const chooseTheme = () => {
-    const opts: { text: string; mode: ThemeMode }[] = [
-      { text: THEME_MODE_LABEL.light, mode: 'light' },
-      { text: THEME_MODE_LABEL.dark, mode: 'dark' },
-      { text: THEME_MODE_LABEL.system, mode: 'system' },
-    ];
-    Alert.alert('Tema', 'Escolha a aparência do app', [
-      ...opts.map((o) => ({ text: o.text, onPress: () => setMode(o.mode) })),
-      { text: 'Cancelar', style: 'cancel' as const },
-    ]);
-  };
 
   return (
     <View style={[styles.screen, { backgroundColor: tokens.surface.page, paddingTop: insets.top + spacing.lg }]}>
@@ -59,12 +45,6 @@ export function ConfiguracoesScreen() {
             title="2FA"
             subtitle="Autenticação em duas etapas"
             onPress={() => Alert.alert('2FA', 'Configuração de 2FA em breve.')}
-          />
-          <SettingRow
-            icon="palette-outline"
-            title="Tema"
-            subtitle={THEME_MODE_LABEL[mode]}
-            onPress={chooseTheme}
           />
           <SettingRow
             icon="bell-outline"

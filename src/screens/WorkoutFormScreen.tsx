@@ -11,7 +11,7 @@ import type { Student, Workout } from '../types/database';
 
 type Props = NativeStackScreenProps<TreinosStackParamList, 'TreinoForm'>;
 
-type ExerciseDraft = { exercise_name: string; sets: string; reps: string; weight: string };
+type ExerciseDraft = { exercise_name: string; sets: string; reps: string; rest: string; weight: string };
 type DayDraft = { name: string; exercises: ExerciseDraft[] };
 
 const DIFFS: { value: NonNullable<Workout['difficulty']>; label: string }[] = [
@@ -20,7 +20,7 @@ const DIFFS: { value: NonNullable<Workout['difficulty']>; label: string }[] = [
   { value: 'advanced', label: 'Avançado' },
 ];
 
-const emptyExercise = (): ExerciseDraft => ({ exercise_name: '', sets: '', reps: '', weight: '' });
+const emptyExercise = (): ExerciseDraft => ({ exercise_name: '', sets: '', reps: '', rest: '', weight: '' });
 const dayLetter = (i: number) => String.fromCharCode(65 + i); // A, B, C…
 const newDay = (i: number): DayDraft => ({ name: `Treino ${dayLetter(i)}`, exercises: [emptyExercise()] });
 
@@ -32,6 +32,9 @@ export function WorkoutFormScreen({ navigation }: Props) {
   const [students, setStudents] = useState<Student[]>([]);
   const [studentId, setStudentId] = useState<string | null>(null); // null = modelo
   const [difficulty, setDifficulty] = useState<Workout['difficulty']>(null);
+  const [durationMonths, setDurationMonths] = useState('');
+  const [daysPerWeek, setDaysPerWeek] = useState('');
+  const [description, setDescription] = useState('');
   const [days, setDays] = useState<DayDraft[]>([newDay(0)]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +81,7 @@ export function WorkoutFormScreen({ navigation }: Props) {
           exercise_name: e.exercise_name.trim(),
           sets: e.sets.trim() ? Number(e.sets.replace(/[^0-9]/g, '')) || null : null,
           reps: e.reps.trim() || null,
+          rest_seconds: e.rest.trim() ? Number(e.rest.replace(/[^0-9]/g, '')) || null : null,
           weight: e.weight.trim() || null,
         }));
       if (exercises.length > 0) {
@@ -87,6 +91,9 @@ export function WorkoutFormScreen({ navigation }: Props) {
 
     if (daysPayload.length === 0) return setError('Adicione ao menos um exercício.');
 
+    const months = durationMonths.trim() ? Number(durationMonths.replace(/[^0-9]/g, '')) : null;
+    const frequency = daysPerWeek.trim() ? Number(daysPerWeek.replace(/[^0-9]/g, '')) : null;
+
     setSaving(true);
     setError(null);
     try {
@@ -94,6 +101,9 @@ export function WorkoutFormScreen({ navigation }: Props) {
         name: workoutName,
         student_id: studentId,
         difficulty,
+        description: description.trim() || null,
+        duration_weeks: months ? months * 4 : null,
+        days_per_week: frequency || null,
         days: daysPayload,
       });
       navigation.goBack();
@@ -167,6 +177,35 @@ export function WorkoutFormScreen({ navigation }: Props) {
           })}
         </View>
 
+        <View style={styles.exMetrics}>
+          <TextInput
+            label="Duração (meses)"
+            value={durationMonths}
+            onChangeText={setDurationMonths}
+            keyboardType="numeric"
+            mode="outlined"
+            style={styles.metric}
+          />
+          <TextInput
+            label="Frequência (dias/sem)"
+            value={daysPerWeek}
+            onChangeText={setDaysPerWeek}
+            keyboardType="numeric"
+            mode="outlined"
+            style={styles.metric}
+          />
+        </View>
+
+        <TextInput
+          label="Descrição"
+          value={description}
+          onChangeText={setDescription}
+          mode="outlined"
+          multiline
+          numberOfLines={3}
+          style={[styles.input, styles.multiline]}
+        />
+
         {days.map((day, di) => (
           <View key={di} style={[styles.dayCard, { backgroundColor: tokens.surface.card }]}>
             <View style={styles.dayHeader}>
@@ -228,6 +267,15 @@ export function WorkoutFormScreen({ navigation }: Props) {
                     dense
                     style={styles.metric}
                   />
+                  <TextInput
+                    label="Descanso (s)"
+                    value={ex.rest}
+                    onChangeText={(t) => setExercise(di, ei, 'rest', t)}
+                    keyboardType="numeric"
+                    mode="outlined"
+                    dense
+                    style={styles.metric}
+                  />
                 </View>
               </View>
             ))}
@@ -273,6 +321,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.xs },
   input: { marginBottom: spacing.xs },
+  multiline: { minHeight: 88 },
 
   fieldLabel: { fontSize: fontSize.sm, fontWeight: '600', marginTop: spacing.sm, marginBottom: spacing.xs },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.sm },
