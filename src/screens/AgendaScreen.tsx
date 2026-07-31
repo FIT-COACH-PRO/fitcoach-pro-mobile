@@ -7,6 +7,7 @@ import { ScreenHeader, StatusBadge, EmptyState, type Tone } from '../components/
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import { listSessions } from '../api/endpoints';
 import { useAuth } from '../hooks/useAuth';
+import { useUnreadNotifications } from '../hooks/useUnreadNotifications';
 import { pad, sameDay } from '../lib/forms';
 import { trainerDisplayName } from '../lib/format';
 import { sampleSessions } from '../data/sample';
@@ -24,6 +25,7 @@ export function AgendaScreen() {
   const navigation = useNavigation<AgendaListNavigationProp>();
   const { user } = useAuth();
   const trainerName = trainerDisplayName(user);
+  const hasUnread = useUnreadNotifications();
 
   // Semana atual (domingo → sábado) com base em hoje.
   const week = useMemo(() => {
@@ -113,6 +115,7 @@ export function AgendaScreen() {
         trainerName={trainerName || '?'}
         onNotificationsPress={() => navigation.navigate('Notificacoes')}
         onProfilePress={() => navigation.navigate('Perfil', { screen: 'PerfilHub' })}
+        hasUnread={hasUnread}
       />
 
       <View style={styles.week}>

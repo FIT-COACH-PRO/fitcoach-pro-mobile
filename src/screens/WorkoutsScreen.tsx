@@ -7,6 +7,7 @@ import { ScreenHeader, EmptyState, StatusBadge } from '../components/ui';
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import { listWorkouts } from '../api/endpoints';
 import { useAuth } from '../hooks/useAuth';
+import { useUnreadNotifications } from '../hooks/useUnreadNotifications';
 import { trainerDisplayName } from '../lib/format';
 import { sampleWorkouts } from '../data/sample';
 import type { Workout } from '../types/database';
@@ -49,6 +50,7 @@ export function WorkoutsScreen() {
   const navigation = useNavigation<TreinosListNavigationProp>();
   const { user } = useAuth();
   const trainerName = trainerDisplayName(user);
+  const hasUnread = useUnreadNotifications();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState(ALL_CATEGORY);
   const [rows, setRows] = useState<Row[] | null>(null);
@@ -104,6 +106,7 @@ export function WorkoutsScreen() {
         trainerName={trainerName || '?'}
         onNotificationsPress={() => navigation.navigate('Notificacoes')}
         onProfilePress={() => navigation.navigate('Perfil', { screen: 'PerfilHub' })}
+        hasUnread={hasUnread}
       />
 
       <View style={styles.controls}>

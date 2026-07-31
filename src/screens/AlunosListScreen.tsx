@@ -7,6 +7,7 @@ import { ScreenHeader, Avatar, StatusBadge, EmptyState, type Tone } from '../com
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import { listStudents } from '../api/endpoints';
 import { useAuth } from '../hooks/useAuth';
+import { useUnreadNotifications } from '../hooks/useUnreadNotifications';
 import { trainerDisplayName } from '../lib/format';
 import { sampleStudents, type StudentStatus } from '../data/sample';
 import type { Student } from '../types/database';
@@ -36,6 +37,7 @@ export function AlunosListScreen() {
   const navigation = useNavigation<AlunosListNavigationProp>();
   const { user } = useAuth();
   const trainerName = trainerDisplayName(user);
+  const hasUnread = useUnreadNotifications();
 
   const [rows, setRows] = useState<Row[] | null>(null);
   const [query, setQuery] = useState('');
@@ -79,6 +81,7 @@ export function AlunosListScreen() {
         trainerName={trainerName || '?'}
         onNotificationsPress={() => navigation.navigate('Notificacoes')}
         onProfilePress={() => navigation.navigate('Perfil', { screen: 'PerfilHub' })}
+        hasUnread={hasUnread}
       />
 
       <View style={styles.controls}>

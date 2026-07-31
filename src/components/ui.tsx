@@ -41,7 +41,8 @@ export function Screen({
  *
  * `trainerName` + `onNotificationsPress` + `onProfilePress` renderizam o par
  * padrão sino/avatar do redesign (Home, Alunos, Treinos, Agenda — ver
- * redesign-dark-ui.md Fase 2). Sem ponto de "não lida" no sino nesta entrega.
+ * redesign-dark-ui.md Fase 2). `hasUnread` acende o ponto laranja no sino
+ * (piloto Fase 2 — ver useUnreadNotifications).
  */
 export function ScreenHeader({
   title,
@@ -51,6 +52,7 @@ export function ScreenHeader({
   trainerName,
   onNotificationsPress,
   onProfilePress,
+  hasUnread,
 }: {
   title: string;
   subtitle?: string;
@@ -59,6 +61,7 @@ export function ScreenHeader({
   trainerName?: string;
   onNotificationsPress?: () => void;
   onProfilePress?: () => void;
+  hasUnread?: boolean;
 }) {
   const { tokens } = useAppTheme();
   return (
@@ -93,7 +96,10 @@ export function ScreenHeader({
             borderless
             accessibilityLabel="Notificações"
           >
-            <Icon source="bell-outline" size={20} color={tokens.text.primary} />
+            <View>
+              <Icon source="bell-outline" size={20} color={tokens.text.primary} />
+              {hasUnread && <View style={[styles.bellDot, { backgroundColor: tokens.accent.base }]} />}
+            </View>
           </TouchableRipple>
           <TouchableRipple onPress={onProfilePress} borderless accessibilityLabel="Perfil">
             <Avatar name={trainerName} color={tokens.accent.base} size={36} />
@@ -239,6 +245,14 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  bellDot: {
+    position: 'absolute',
+    top: -1,
+    right: -1,
+    width: 9,
+    height: 9,
+    borderRadius: radius.pill,
   },
 
   avatar: { alignItems: 'center', justifyContent: 'center' },

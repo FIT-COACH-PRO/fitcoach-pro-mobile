@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Text, ActivityIndicator, Icon, TouchableRipple } from 'react-native-paper';
 import { getDashboardStats, listUpcomingRenewals } from '../api/endpoints';
 import { useAuth } from '../hooks/useAuth';
+import { useUnreadNotifications } from '../hooks/useUnreadNotifications';
 import type { DashboardStats, UpcomingRenewal } from '../types/database';
 import type { HomeNavigationProp } from '../navigation/types';
 import { Avatar } from '../components/ui';
@@ -28,6 +29,7 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<HomeNavigationProp>();
   const { user } = useAuth();
+  const hasUnread = useUnreadNotifications();
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [renewals, setRenewals] = useState<UpcomingRenewal[]>([]);
@@ -106,6 +108,7 @@ export function HomeScreen() {
           >
             <View style={styles.bellInner}>
               <Icon source="bell-outline" size={22} color={tokens.text.primary} />
+              {hasUnread && <View style={[styles.bellDot, { backgroundColor: tokens.accent.base }]} />}
             </View>
           </TouchableRipple>
           <TouchableRipple
@@ -284,6 +287,14 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   bellInner: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  bellDot: {
+    position: 'absolute',
+    top: 6,
+    right: 8,
+    width: 9,
+    height: 9,
+    borderRadius: radius.pill,
+  },
 
   grid: {
     flexDirection: 'row',

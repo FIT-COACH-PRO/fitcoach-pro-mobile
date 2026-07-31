@@ -33,7 +33,6 @@ export function SignupScreen({ onBack }: { onBack: () => void }) {
     if (!mail) return setError('Informe seu e-mail.');
     if (password.length < 6) return setError('A senha precisa ter ao menos 6 caracteres.');
     if (!cpf.trim()) return setError('Informe seu CPF.');
-    if (!cref.trim()) return setError('Informe seu CREF.');
     if (!whatsapp.trim()) return setError('Informe seu WhatsApp.');
     if (!city.trim()) return setError('Informe sua cidade.');
     if (!uf.trim()) return setError('Informe seu estado (UF).');
@@ -113,7 +112,7 @@ export function SignupScreen({ onBack }: { onBack: () => void }) {
         />
         <TextInput label="WhatsApp *" value={whatsapp} onChangeText={setWhatsapp} keyboardType="phone-pad" mode="outlined" style={styles.input} />
         <TextInput label="CPF *" value={cpf} onChangeText={setCpf} keyboardType="numeric" mode="outlined" style={styles.input} />
-        <TextInput label="CREF *" value={cref} onChangeText={setCref} autoCapitalize="characters" mode="outlined" style={styles.input} />
+        <TextInput label="CREF" value={cref} onChangeText={setCref} autoCapitalize="characters" mode="outlined" style={styles.input} />
         <View style={styles.row}>
           <TextInput label="Cidade *" value={city} onChangeText={setCity} mode="outlined" style={[styles.input, styles.cityItem]} />
           <TextInput

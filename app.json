@@ -62,6 +62,12 @@
         "projectId": "f1ecdafa-c9e9-4d80-9320-14a76b5e3fb8"
       }
     },
-    "owner": "fit-coachpro"
+    "owner": "fit-coachpro",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f1ecdafa-c9e9-4d80-9320-14a76b5e3fb8"
+    }
   }
 }
