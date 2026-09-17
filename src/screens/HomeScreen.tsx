@@ -8,7 +8,7 @@ import { getDashboardStats, listUpcomingRenewals } from '../api/endpoints';
 import { useAuth } from '../hooks/useAuth';
 import type { DashboardStats, UpcomingRenewal } from '../types/database';
 import type { HomeStackParamList } from '../navigation/types';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 import { sampleDashboard, sampleRenewals } from '../data/sample';
 import {
   formatCurrency,
@@ -99,17 +99,31 @@ export function HomeScreen() {
           </Text>
         </View>
 
-        <TouchableRipple
-          onPress={() => navigation.navigate('Notificacoes')}
-          style={[styles.bell, { backgroundColor: tokens.surface.card }]}
-          borderless
-          accessibilityLabel="Notificações"
-        >
-          <View style={styles.bellInner}>
-            <Icon source="bell-outline" size={22} color={tokens.text.primary} />
-            <View style={[styles.bellDot, { backgroundColor: tokens.accent.base }]} />
-          </View>
-        </TouchableRipple>
+        <View style={styles.headerActions}>
+          <TouchableRipple
+            onPress={() => navigation.navigate('Notificacoes')}
+            style={[styles.headerBtn, { backgroundColor: tokens.surface.card }]}
+            borderless
+            accessibilityLabel="Notificações"
+          >
+            <View style={styles.headerBtnInner}>
+              <Icon source="bell-outline" size={touch.glyph} color={tokens.text.primary} />
+              <View style={[styles.bellDot, { backgroundColor: tokens.accent.base }]} />
+            </View>
+          </TouchableRipple>
+
+          {/* A aba "Mais" saiu da barra inferior; o hub abre por aqui. */}
+          <TouchableRipple
+            onPress={() => navigation.navigate('MaisHub')}
+            style={[styles.headerBtn, { backgroundColor: tokens.surface.card }]}
+            borderless
+            accessibilityLabel="Mais"
+          >
+            <View style={styles.headerBtnInner}>
+              <Icon source="dots-horizontal" size={touch.glyph} color={tokens.text.primary} />
+            </View>
+          </TouchableRipple>
+        </View>
       </View>
 
       {stats && (
@@ -207,7 +221,7 @@ function StatCard({
         <View
           style={[styles.iconCircle, { backgroundColor: tokens.surface.sunken }]}
         >
-          <Icon source={icon} size={18} color={iconColor} />
+          <Icon source={icon} size={20} color={iconColor} />
         </View>
       </View>
       <Text style={[styles.statLabel, { color: tokens.text.secondary }]}>
@@ -271,18 +285,19 @@ const styles = StyleSheet.create({
   headerText: { flex: 1, gap: 2 },
   greeting: { fontSize: fontSize.xl, fontWeight: '700' },
   date: { fontSize: fontSize.sm },
-  bell: {
-    width: 44,
-    height: 44,
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  headerBtn: {
+    width: touch.min,
+    height: touch.min,
     borderRadius: radius.pill,
   },
-  bellInner: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  headerBtnInner: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   bellDot: {
     position: 'absolute',
-    top: 6,
-    right: 8,
-    width: 9,
-    height: 9,
+    top: 8,
+    right: 10,
+    width: 10,
+    height: 10,
     borderRadius: radius.pill,
   },
 
@@ -309,8 +324,8 @@ const styles = StyleSheet.create({
   statValue: { fontSize: fontSize.xxl, fontWeight: '700', flexShrink: 1 },
   statLabel: { fontSize: fontSize.sm },
   iconCircle: {
-    width: 34,
-    height: 34,
+    width: 38,
+    height: 38,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
@@ -327,10 +342,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     paddingVertical: spacing.md,
+    minHeight: touch.min,
   },
   avatar: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',

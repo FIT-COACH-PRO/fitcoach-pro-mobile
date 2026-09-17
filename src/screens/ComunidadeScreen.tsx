@@ -3,7 +3,7 @@ import { Screen, ScreenHeader, EmptyState } from '../components/ui';
 /**
  * Comunidade — rede social entre personais (troca de informações).
  * Feature planejada; a integração real fica a cargo do Matheus. Aqui é só o
- * espaço reservado no app, acessível pela aba "Mais".
+ * espaço reservado no app, acessível pelo botão central da barra inferior.
  */
 export function ComunidadeScreen({ onBack }: { onBack?: () => void }) {
   return (

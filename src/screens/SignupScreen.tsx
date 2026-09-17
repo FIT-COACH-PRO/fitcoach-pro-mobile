@@ -5,7 +5,7 @@ import { TextInput, Text, TouchableRipple } from 'react-native-paper';
 import { useAuth } from '../hooks/useAuth';
 import { ScreenHeader, ErrorState } from '../components/ui';
 import { brToIso } from '../lib/forms';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 
 export function SignupScreen({ onBack }: { onBack: () => void }) {
   const { tokens } = useAppTheme();
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   cityItem: { flex: 1 },
   ufItem: { width: 88 },
 
-  submit: { borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
+  submit: { borderRadius: radius.md, paddingVertical: spacing.lg, minHeight: touch.min, alignItems: 'center', marginTop: spacing.md },
   submitText: { fontSize: fontSize.md, fontWeight: '700' },
 
   doneBox: { paddingHorizontal: spacing.lg, gap: spacing.md, marginTop: spacing.xl },

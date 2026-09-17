@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Icon, TouchableRipple, ActivityIndicator } from 'react-native-paper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, EmptyState } from '../components/ui';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 import { getWorkout } from '../api/endpoints';
 import { setsLabel } from '../lib/format';
 import { sampleWorkouts, type SampleWorkout } from '../data/sample';
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   exSets: { fontSize: fontSize.md, fontWeight: '600' },
   exLoad: { fontSize: fontSize.sm, fontWeight: '600' },
 
-  shareBtn: { borderRadius: radius.md, paddingVertical: spacing.md, marginTop: spacing.sm },
+  shareBtn: { borderRadius: radius.md, paddingVertical: spacing.lg, minHeight: touch.min, marginTop: spacing.sm },
   shareInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   shareText: { fontSize: fontSize.md, fontWeight: '600' },
 });

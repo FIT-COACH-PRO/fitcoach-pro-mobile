@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TextInput, Text, TouchableRipple } from 'react-native-paper';
 import { supabase } from '../lib/supabase';
 import { ScreenHeader, ErrorState } from '../components/ui';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 
 /** Mostrada quando o app é aberto via deep link de recuperação de senha (fitcoachpro://reset-password). */
 export function ResetPasswordConfirmScreen({ onDone }: { onDone: () => void }) {
@@ -68,6 +68,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: spacing.lg, gap: spacing.md, marginTop: spacing.sm },
   input: { marginBottom: spacing.xs },
-  submit: { borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
+  submit: { borderRadius: radius.md, paddingVertical: spacing.lg, minHeight: touch.min, alignItems: 'center', marginTop: spacing.md },
   submitText: { fontSize: fontSize.md, fontWeight: '700' },
 });

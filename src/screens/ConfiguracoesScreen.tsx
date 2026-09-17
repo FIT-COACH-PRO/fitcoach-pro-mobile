@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Text, Icon, TouchableRipple } from 'react-native-paper';
 import { ScreenHeader, Avatar, Card } from '../components/ui';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 import { useThemeMode, THEME_MODE_LABEL, type ThemeMode } from '../theme/ThemeMode';
 import { useAuth } from '../hooks/useAuth';
 import { sendLocalNotification } from '../lib/notifications';
@@ -113,13 +113,13 @@ function SettingRow({
     <TouchableRipple onPress={onPress} style={[styles.row, { backgroundColor: tokens.surface.card }]}>
       <View style={styles.rowInner}>
         <View style={[styles.rowIcon, { backgroundColor: tokens.surface.sunken }]}>
-          <Icon source={icon} size={20} color={tokens.accent.base} />
+          <Icon source={icon} size={touch.glyph} color={tokens.accent.base} />
         </View>
         <View style={styles.rowText}>
           <Text style={[styles.rowTitle, { color: tokens.text.primary }]}>{title}</Text>
           <Text style={[styles.rowSubtitle, { color: tokens.text.secondary }]}>{subtitle}</Text>
         </View>
-        <Icon source="chevron-right" size={20} color={tokens.text.muted} />
+        <Icon source="chevron-right" size={touch.chevron} color={tokens.text.muted} />
       </View>
     </TouchableRipple>
   );
@@ -136,10 +136,16 @@ const styles = StyleSheet.create({
 
   list: { gap: spacing.sm },
   row: { borderRadius: radius.md },
-  rowInner: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md },
+  rowInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+    minHeight: touch.min,
+  },
   rowIcon: {
-    width: 40,
-    height: 40,
+    width: touch.circle,
+    height: touch.circle,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
@@ -148,7 +154,7 @@ const styles = StyleSheet.create({
   rowTitle: { fontSize: fontSize.md, fontWeight: '600' },
   rowSubtitle: { fontSize: fontSize.sm },
 
-  signOut: { borderRadius: radius.md, paddingVertical: spacing.md, marginTop: spacing.sm },
+  signOut: { borderRadius: radius.md, paddingVertical: spacing.lg, minHeight: touch.min, marginTop: spacing.sm },
   signOutInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   signOutText: { fontSize: fontSize.md, fontWeight: '600' },
 });

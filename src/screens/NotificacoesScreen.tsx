@@ -2,7 +2,7 @@ import { View, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Icon } from 'react-native-paper';
 import { ScreenHeader, EmptyState, useToneColors, type Tone } from '../components/ui';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 import { sampleNotifications, type SampleNotification, type SampleNotificationKind } from '../data/sample';
 
 const KIND_META: Record<SampleNotificationKind, { icon: string; tone: Tone }> = {
@@ -68,8 +68,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   icon: {
-    width: 40,
-    height: 40,
+    width: touch.circle,
+    height: touch.circle,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',

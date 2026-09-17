@@ -6,7 +6,7 @@ import {
 } from '@react-navigation/native';
 import { colors, type ColorTokens } from './colors';
 
-export { colors, spacing, radius, fontSize } from './colors';
+export { colors, spacing, radius, fontSize, touch } from './colors';
 
 /** Mesma forma que ColorTokens, mas com valores livres (o dark preenche os mesmos slots). */
 export type ThemeTokens = {

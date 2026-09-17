@@ -5,7 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Text, Icon, TouchableRipple, ActivityIndicator } from 'react-native-paper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, StatusBadge, Card, EmptyState, ErrorState, type Tone } from '../components/ui';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 import { getStudent, getStudentInsights } from '../api/endpoints';
 import { ageFrom } from '../lib/format';
 import { sampleStudents, type SampleStudent, type StudentStatus } from '../data/sample';
@@ -205,7 +205,7 @@ export function AlunoDetalheScreen({ route, navigation }: Props) {
             >
               <View style={styles.gridInner}>
                 <View style={[styles.gridIcon, { backgroundColor: tokens.surface.sunken }]}>
-                  <Icon source={a.icon} size={20} color={tokens.accent.base} />
+                  <Icon source={a.icon} size={touch.glyph} color={tokens.accent.base} />
                 </View>
                 <Text style={[styles.gridLabel, { color: tokens.text.primary }]}>{a.label}</Text>
               </View>
@@ -216,7 +216,7 @@ export function AlunoDetalheScreen({ route, navigation }: Props) {
         <Card style={styles.iaCard}>
           <View style={styles.iaHeader}>
             <View style={[styles.gridIcon, { backgroundColor: tokens.surface.sunken }]}>
-              <Icon source="robot-outline" size={20} color={tokens.accent.base} />
+              <Icon source="robot-outline" size={touch.glyph} color={tokens.accent.base} />
             </View>
             <View style={styles.iaText}>
               <Text style={[styles.iaTitle, { color: tokens.text.primary }]}>Insights com IA</Text>
@@ -290,8 +290,8 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
 
   actionsTop: { flexDirection: 'row', gap: spacing.sm },
-  primaryBtn: { flex: 1, borderRadius: radius.md, paddingVertical: spacing.md },
-  outlineBtn: { flex: 1, borderRadius: radius.md, paddingVertical: spacing.md, borderWidth: 1 },
+  primaryBtn: { flex: 1, borderRadius: radius.md, paddingVertical: spacing.lg, minHeight: touch.min },
+  outlineBtn: { flex: 1, borderRadius: radius.md, paddingVertical: spacing.lg, minHeight: touch.min, borderWidth: 1 },
   btnInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   btnText: { fontSize: fontSize.md, fontWeight: '600' },
 
@@ -322,6 +322,6 @@ const styles = StyleSheet.create({
   iaText: { flex: 1, gap: 2 },
   iaTitle: { fontSize: fontSize.md, fontWeight: '600' },
   iaSubtitle: { fontSize: fontSize.sm },
-  iaBtn: { borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
+  iaBtn: { borderRadius: radius.md, paddingVertical: spacing.lg, minHeight: touch.min, alignItems: 'center' },
   iaResult: { fontSize: fontSize.sm, lineHeight: 20 },
 });

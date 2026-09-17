@@ -6,7 +6,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, ErrorState, EmptyState } from '../components/ui';
 import { createSession, listStudents } from '../api/endpoints';
 import { todayBR, toLocalDate } from '../lib/forms';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 import type { AgendaStackParamList } from '../navigation/types';
 import type { Student } from '../types/database';
 
@@ -182,8 +182,10 @@ const styles = StyleSheet.create({
   fieldLabel: { fontSize: fontSize.sm, fontWeight: '600', marginTop: spacing.sm, marginBottom: spacing.xs },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.sm },
   chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    minHeight: touch.min,
+    justifyContent: 'center',
     borderRadius: radius.pill,
     borderWidth: 1,
   },
@@ -191,7 +193,8 @@ const styles = StyleSheet.create({
 
   submit: {
     borderRadius: radius.md,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
+    minHeight: touch.min,
     alignItems: 'center',
     marginTop: spacing.md,
   },

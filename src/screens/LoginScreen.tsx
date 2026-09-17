@@ -3,7 +3,7 @@ import { View, StyleSheet, Image, KeyboardAvoidingView, Platform } from 'react-n
 import { TextInput, Text, TouchableRipple } from 'react-native-paper';
 import { useAuth } from '../hooks/useAuth';
 import { Card } from '../components/ui';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 
 export function LoginScreen({ onSignup, onForgot }: { onSignup: () => void; onForgot: () => void }) {
   const { tokens } = useAppTheme();
@@ -122,7 +122,8 @@ const styles = StyleSheet.create({
   error: { fontSize: fontSize.sm },
   submit: {
     borderRadius: radius.md,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
+    minHeight: touch.min,
     alignItems: 'center',
     marginTop: spacing.sm,
   },
