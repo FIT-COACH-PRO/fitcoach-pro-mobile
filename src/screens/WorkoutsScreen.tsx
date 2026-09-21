@@ -58,6 +58,20 @@ export function WorkoutsScreen() {
     <View style={[styles.screen, { backgroundColor: tokens.surface.page, paddingTop: insets.top + spacing.lg }]}>
       <ScreenHeader title="Treinos" subtitle="Modelos e prescrições" />
 
+      {/* Atalhos para as duas áreas novas: programas (bundles) e catálogo. */}
+      <View style={styles.shortcuts}>
+        <Shortcut
+          icon="calendar-multiselect"
+          label="Programas"
+          onPress={() => navigation.navigate('Programas')}
+        />
+        <Shortcut
+          icon="swap-horizontal"
+          label="Exercícios"
+          onPress={() => navigation.navigate('Exercicios')}
+        />
+      </View>
+
       <View style={styles.controls}>
         <Searchbar
           placeholder="Buscar treino"
@@ -103,6 +117,30 @@ export function WorkoutsScreen() {
   );
 }
 
+function Shortcut({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: string;
+  label: string;
+  onPress: () => void;
+}) {
+  const { tokens } = useAppTheme();
+  return (
+    <TouchableRipple
+      onPress={onPress}
+      style={[styles.shortcut, { backgroundColor: tokens.surface.card }]}
+      borderless
+    >
+      <View style={styles.shortcutInner}>
+        <Icon source={icon} size={touch.glyph} color={tokens.accent.base} />
+        <Text style={[styles.shortcutLabel, { color: tokens.text.primary }]}>{label}</Text>
+      </View>
+    </TouchableRipple>
+  );
+}
+
 function WorkoutRow({ workout, onPress }: { workout: Row; onPress: () => void }) {
   const { tokens } = useAppTheme();
   return (
@@ -128,6 +166,23 @@ function WorkoutRow({ workout, onPress }: { workout: Row; onPress: () => void })
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  shortcuts: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  shortcut: { flex: 1, borderRadius: radius.md },
+  shortcutInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    minHeight: touch.min,
+  },
+  shortcutLabel: { fontSize: fontSize.sm, fontWeight: '600' },
+
   controls: { paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
   search: { borderRadius: radius.md },
   list: { paddingHorizontal: spacing.lg, paddingBottom: 96, gap: spacing.sm },

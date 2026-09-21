@@ -33,6 +33,14 @@ import { PagamentoFormScreen } from '../screens/PagamentoFormScreen';
 import { ConfiguracoesScreen } from '../screens/ConfiguracoesScreen';
 import { PerfilFormScreen } from '../screens/PerfilFormScreen';
 import { ComunidadeScreen } from '../screens/ComunidadeScreen';
+import { AvisoFormScreen } from '../screens/AvisoFormScreen';
+import { ProdutividadeScreen } from '../screens/ProdutividadeScreen';
+import { ProgressoScreen } from '../screens/ProgressoScreen';
+import { CargasScreen } from '../screens/CargasScreen';
+import { ProgramasScreen } from '../screens/ProgramasScreen';
+import { ProgramaFormScreen } from '../screens/ProgramaFormScreen';
+import { ExerciciosScreen } from '../screens/ExerciciosScreen';
+import { ExercicioSubstitutosScreen } from '../screens/ExercicioSubstitutosScreen';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
@@ -55,6 +63,7 @@ function HomeStackNav() {
       <HomeStack.Screen name="PagamentoForm" component={PagamentoFormScreen} />
       <HomeStack.Screen name="Configuracoes" component={ConfiguracoesScreen} />
       <HomeStack.Screen name="PerfilForm" component={PerfilFormScreen} />
+      <HomeStack.Screen name="Produtividade" component={ProdutividadeScreen} />
     </HomeStack.Navigator>
   );
 }
@@ -65,6 +74,8 @@ function AlunosStackNav() {
       <AlunosStack.Screen name="AlunosList" component={AlunosListScreen} />
       <AlunosStack.Screen name="AlunoDetalhe" component={AlunoDetalheScreen} />
       <AlunosStack.Screen name="AlunoForm" component={AlunoFormScreen} />
+      <AlunosStack.Screen name="AlunoProgresso" component={ProgressoScreen} />
+      <AlunosStack.Screen name="AlunoCargas" component={CargasScreen} />
     </AlunosStack.Navigator>
   );
 }
@@ -75,6 +86,10 @@ function TreinosStackNav() {
       <TreinosStack.Screen name="TreinosList" component={WorkoutsScreen} />
       <TreinosStack.Screen name="TreinoDetalhe" component={TreinoDetalheScreen} />
       <TreinosStack.Screen name="TreinoForm" component={WorkoutFormScreen} />
+      <TreinosStack.Screen name="Programas" component={ProgramasScreen} />
+      <TreinosStack.Screen name="ProgramaForm" component={ProgramaFormScreen} />
+      <TreinosStack.Screen name="Exercicios" component={ExerciciosScreen} />
+      <TreinosStack.Screen name="ExercicioSubstitutos" component={ExercicioSubstitutosScreen} />
     </TreinosStack.Navigator>
   );
 }
@@ -92,6 +107,7 @@ function ComunidadeStackNav() {
   return (
     <ComunidadeStack.Navigator screenOptions={stackOptions}>
       <ComunidadeStack.Screen name="ComunidadeFeed" component={ComunidadeScreen} />
+      <ComunidadeStack.Screen name="AvisoForm" component={AvisoFormScreen} />
     </ComunidadeStack.Navigator>
   );
 }

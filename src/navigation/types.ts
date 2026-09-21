@@ -13,6 +13,7 @@ export type HomeStackParamList = {
   PagamentoForm: undefined;
   Configuracoes: undefined;
   PerfilForm: undefined;
+  Produtividade: undefined;
 };
 
 /** Alias histórico: as telas do hub "Mais" vivem na stack da Home. */
@@ -22,12 +23,22 @@ export type AlunosStackParamList = {
   AlunosList: undefined;
   AlunoDetalhe: { studentId: string };
   AlunoForm: { studentId?: string } | undefined;
+  /** Histórico de peso/IMC (snapshots) do aluno. */
+  AlunoProgresso: { studentId: string; studentName: string };
+  /** Histórico de cargas por exercício; `exerciseName` abre já filtrado. */
+  AlunoCargas: { studentId: string; studentName: string; exerciseName?: string };
 };
 
 export type TreinosStackParamList = {
   TreinosList: undefined;
   TreinoDetalhe: { workoutId: string };
   TreinoForm: undefined;
+  /** Programas/mesociclos: bundles de treinos atribuíveis de uma vez. */
+  Programas: undefined;
+  ProgramaForm: undefined;
+  /** Catálogo de exercícios e suas alternativas. */
+  Exercicios: undefined;
+  ExercicioSubstitutos: { exerciseId: string; exerciseName: string };
 };
 
 export type AgendaStackParamList = {
@@ -37,6 +48,8 @@ export type AgendaStackParamList = {
 
 export type ComunidadeStackParamList = {
   ComunidadeFeed: undefined;
+  /** Publicação de aviso — só o admin chega aqui. */
+  AvisoForm: undefined;
 };
 
 /**

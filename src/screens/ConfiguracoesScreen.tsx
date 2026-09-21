@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +10,8 @@ import { useThemeMode, THEME_MODE_LABEL, type ThemeMode } from '../theme/ThemeMo
 import { useAuth } from '../hooks/useAuth';
 import { sendLocalNotification } from '../lib/notifications';
 import { requestCalendarPermission } from '../lib/calendar';
+import { getRenewalAlertDays, updateRenewalAlertDays } from '../api/endpoints';
+import { DEFAULT_RENEWAL_ALERT_DAYS } from '../lib/renewals';
 import { sampleProfile } from '../data/sample';
 import type { MaisStackParamList } from '../navigation/types';
 
@@ -18,6 +21,42 @@ export function ConfiguracoesScreen() {
   const { user, signOut } = useAuth();
   const { mode, setMode } = useThemeMode();
   const navigation = useNavigation<NativeStackNavigationProp<MaisStackParamList>>();
+
+  // Antecedência do alerta de vencimento (profiles.renewal_alert_days).
+  const [alertDays, setAlertDays] = useState(DEFAULT_RENEWAL_ALERT_DAYS);
+
+  useEffect(() => {
+    let alive = true;
+    getRenewalAlertDays()
+      .then((days) => {
+        if (alive) setAlertDays(days);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const chooseAlertDays = () => {
+    const options = [3, 7, 15, 30];
+    Alert.alert(
+      'Alerta de vencimento',
+      'Com quantos dias de antecedência avisar sobre a ficha do aluno?',
+      [
+        ...options.map((days) => ({
+          text: `${days} dias`,
+          onPress: async () => {
+            try {
+              setAlertDays(await updateRenewalAlertDays(days));
+            } catch {
+              Alert.alert('Alerta de vencimento', 'Não foi possível salvar a preferência.');
+            }
+          },
+        })),
+        { text: 'Cancelar', style: 'cancel' as const },
+      ]
+    );
+  };
 
   const name = (user?.user_metadata?.full_name as string | undefined) ?? sampleProfile.name;
   const email = user?.email ?? sampleProfile.email;
@@ -59,6 +98,12 @@ export function ConfiguracoesScreen() {
             title="2FA"
             subtitle="Autenticação em duas etapas"
             onPress={() => Alert.alert('2FA', 'Configuração de 2FA em breve.')}
+          />
+          <SettingRow
+            icon="calendar-alert"
+            title="Alerta de vencimento"
+            subtitle={`Avisar ${alertDays} dias antes`}
+            onPress={chooseAlertDays}
           />
           <SettingRow
             icon="palette-outline"

@@ -8,14 +8,23 @@ import { ScreenHeader, StatusBadge, EmptyState, type Tone } from '../components/
 import { useAppTheme, spacing, radius, fontSize } from '../theme';
 import { listSessions } from '../api/endpoints';
 import { pad, sameDay } from '../lib/forms';
+import { modalidadeOf, MODALIDADE_LABEL } from '../lib/agenda';
 import { sampleSessions } from '../data/sample';
 import type { Session } from '../types/database';
+import type { SessionModalidade } from '../types/extras';
 import type { AgendaStackParamList } from '../navigation/types';
 
 const WEEKDAY_LETTERS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']; // Dom → Sáb
 const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
-type SessionRowData = { id: string; time: string; studentName: string; durationMin: number; isNext: boolean };
+type SessionRowData = {
+  id: string;
+  time: string;
+  studentName: string;
+  durationMin: number;
+  isNext: boolean;
+  modalidade: SessionModalidade;
+};
 
 export function AgendaScreen() {
   const { tokens } = useAppTheme();
@@ -79,6 +88,7 @@ export function AgendaScreen() {
             studentName: s.studentName,
             durationMin: s.durationMin,
             isNext: s.status === 'next',
+            modalidade: 'presencial' as SessionModalidade,
           }))
         : [];
     }
@@ -95,6 +105,7 @@ export function AgendaScreen() {
           studentName: s.student?.full_name ?? 'Aluno',
           durationMin: Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000)),
           isNext: s.id === nextId,
+          modalidade: modalidadeOf(s as { modalidade?: SessionModalidade | null }),
         };
       })
       .sort((a, b) => a.time.localeCompare(b.time));
@@ -168,7 +179,9 @@ function SessionRow({ session }: { session: SessionRowData }) {
         <Text style={[styles.sessionName, { color: tokens.text.primary }]} numberOfLines={1}>
           {session.studentName}
         </Text>
-        <Text style={[styles.sessionDur, { color: tokens.text.secondary }]}>{session.durationMin} min</Text>
+        <Text style={[styles.sessionDur, { color: tokens.text.secondary }]}>
+          {session.durationMin} min • {MODALIDADE_LABEL[session.modalidade]}
+        </Text>
       </View>
       <StatusBadge label={meta.label} tone={meta.tone} />
     </View>

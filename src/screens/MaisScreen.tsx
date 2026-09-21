@@ -18,6 +18,12 @@ type Item = {
 // Comunidade saiu daqui: virou aba própria (botão central da barra inferior).
 const ITEMS: Item[] = [
   { route: 'Financeiro', icon: 'wallet-outline', title: 'Financeiro', subtitle: 'Pagamentos e recebimentos' },
+  {
+    route: 'Produtividade',
+    icon: 'chart-timeline-variant',
+    title: 'Produtividade',
+    subtitle: 'Treinos montados e horas de aula',
+  },
   { route: 'Notificacoes', icon: 'bell-outline', title: 'Notificações', subtitle: 'Atualizações importantes' },
   { route: 'Configuracoes', icon: 'cog-outline', title: 'Configurações', subtitle: 'Conta e preferências' },
 ];

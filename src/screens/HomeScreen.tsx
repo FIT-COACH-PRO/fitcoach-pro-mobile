@@ -4,12 +4,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Text, ActivityIndicator, Icon, TouchableRipple } from 'react-native-paper';
-import { getDashboardStats, listUpcomingRenewals } from '../api/endpoints';
+import { getDashboardStats, listUpcomingRenewals, getRenewalAlertDays } from '../api/endpoints';
 import { useAuth } from '../hooks/useAuth';
 import type { DashboardStats, UpcomingRenewal } from '../types/database';
 import type { HomeStackParamList } from '../navigation/types';
 import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 import { sampleDashboard, sampleRenewals } from '../data/sample';
+import { DEFAULT_RENEWAL_ALERT_DAYS } from '../lib/renewals';
 import {
   formatCurrency,
   formatCurrencyCompact,
@@ -32,13 +33,17 @@ export function HomeScreen() {
   const [renewals, setRenewals] = useState<UpcomingRenewal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // Janela do alerta de vencimento configurada pelo personal (Configurações).
+  const [alertDays, setAlertDays] = useState(DEFAULT_RENEWAL_ALERT_DAYS);
 
   const load = useCallback(async () => {
     try {
+      const days = await getRenewalAlertDays();
       const [nextStats, nextRenewals] = await Promise.all([
-        getDashboardStats(),
-        listUpcomingRenewals(),
+        getDashboardStats(days),
+        listUpcomingRenewals(days),
       ]);
+      setAlertDays(days);
       setStats(nextStats);
       setRenewals(nextRenewals);
     } catch {
@@ -169,13 +174,13 @@ export function HomeScreen() {
       )}
 
       <Text style={[styles.sectionTitle, { color: tokens.text.primary }]}>
-        Renovações próximas (7 dias)
+        Renovações próximas ({alertDays} dias)
       </Text>
 
       {renewals.length === 0 ? (
         <View style={[styles.card, { backgroundColor: tokens.surface.card }]}>
           <Text style={{ color: tokens.text.secondary }}>
-            Nenhuma renovação nos próximos 7 dias.
+            Nenhuma renovação nos próximos {alertDays} dias.
           </Text>
         </View>
       ) : (
