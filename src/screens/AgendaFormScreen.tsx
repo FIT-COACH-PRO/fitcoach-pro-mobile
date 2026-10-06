@@ -6,9 +6,11 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, ErrorState, EmptyState } from '../components/ui';
 import { createSession, listStudents } from '../api/endpoints';
 import { todayBR, toLocalDate } from '../lib/forms';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { MODALIDADE_LABEL } from '../lib/agenda';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 import type { AgendaStackParamList } from '../navigation/types';
 import type { Student } from '../types/database';
+import type { SessionModalidade } from '../types/extras';
 
 type Props = NativeStackScreenProps<AgendaStackParamList, 'AgendaForm'>;
 
@@ -21,6 +23,7 @@ export function AgendaFormScreen({ navigation }: Props) {
   const [date, setDate] = useState(todayBR());
   const [startTime, setStartTime] = useState('08:00');
   const [duration, setDuration] = useState('60');
+  const [modalidade, setModalidade] = useState<SessionModalidade>('presencial');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +57,7 @@ export function AgendaFormScreen({ navigation }: Props) {
         student_id: studentId,
         starts_at: start.toISOString(),
         ends_at: end.toISOString(),
+        modalidade,
       });
       navigation.goBack();
     } catch (e) {
@@ -154,6 +158,36 @@ export function AgendaFormScreen({ navigation }: Props) {
           />
         </View>
 
+        <Text style={[styles.fieldLabel, { color: tokens.text.secondary }]}>Modalidade *</Text>
+        <View style={styles.chips}>
+          {(['presencial', 'online'] as SessionModalidade[]).map((m) => {
+            const selected = modalidade === m;
+            return (
+              <TouchableRipple
+                key={m}
+                onPress={() => setModalidade(m)}
+                style={[
+                  styles.chip,
+                  {
+                    backgroundColor: selected ? tokens.accent.base : tokens.surface.card,
+                    borderColor: selected ? tokens.accent.base : tokens.surface.divider,
+                  },
+                ]}
+                borderless
+              >
+                <Text
+                  style={[styles.chipText, { color: selected ? tokens.text.onAccent : tokens.text.secondary }]}
+                >
+                  {MODALIDADE_LABEL[m]}
+                </Text>
+              </TouchableRipple>
+            );
+          })}
+        </View>
+        <Text style={[styles.hint, { color: tokens.text.muted }]}>
+          Aula online não bloqueia o horário: só duas presenciais entram em conflito.
+        </Text>
+
         {error && <ErrorState message={error} />}
 
         <TouchableRipple
@@ -182,16 +216,20 @@ const styles = StyleSheet.create({
   fieldLabel: { fontSize: fontSize.sm, fontWeight: '600', marginTop: spacing.sm, marginBottom: spacing.xs },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.sm },
   chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    minHeight: touch.min,
+    justifyContent: 'center',
     borderRadius: radius.pill,
     borderWidth: 1,
   },
   chipText: { fontSize: fontSize.sm, fontWeight: '600' },
+  hint: { fontSize: fontSize.xs, lineHeight: 18, marginBottom: spacing.sm },
 
   submit: {
     borderRadius: radius.md,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
+    minHeight: touch.min,
     alignItems: 'center',
     marginTop: spacing.md,
   },

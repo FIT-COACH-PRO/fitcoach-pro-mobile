@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TextInput, Text, TouchableRipple } from 'react-native-paper';
 import { useAuth } from '../hooks/useAuth';
 import { ScreenHeader, ErrorState } from '../components/ui';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 
 export function ForgotPasswordScreen({ onBack }: { onBack: () => void }) {
   const { tokens } = useAppTheme();
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { paddingHorizontal: spacing.lg, gap: spacing.md, marginTop: spacing.sm },
   input: { marginBottom: spacing.xs },
-  submit: { borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.md },
+  submit: { borderRadius: radius.md, paddingVertical: spacing.lg, minHeight: touch.min, alignItems: 'center', marginTop: spacing.md },
   submitText: { fontSize: fontSize.md, fontWeight: '700' },
   sentTitle: { fontSize: fontSize.lg, fontWeight: '700', marginTop: spacing.lg },
   sentText: { fontSize: fontSize.md, lineHeight: 22 },

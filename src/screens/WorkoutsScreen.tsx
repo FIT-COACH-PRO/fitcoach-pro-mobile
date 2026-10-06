@@ -5,7 +5,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Searchbar, TouchableRipple, Text, Icon, FAB, ActivityIndicator } from 'react-native-paper';
 import { ScreenHeader, EmptyState } from '../components/ui';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 import { listWorkouts } from '../api/endpoints';
 import { sampleWorkouts } from '../data/sample';
 import type { Workout } from '../types/database';
@@ -58,6 +58,20 @@ export function WorkoutsScreen() {
     <View style={[styles.screen, { backgroundColor: tokens.surface.page, paddingTop: insets.top + spacing.lg }]}>
       <ScreenHeader title="Treinos" subtitle="Modelos e prescrições" />
 
+      {/* Atalhos para as duas áreas novas: programas (bundles) e catálogo. */}
+      <View style={styles.shortcuts}>
+        <Shortcut
+          icon="calendar-multiselect"
+          label="Programas"
+          onPress={() => navigation.navigate('Programas')}
+        />
+        <Shortcut
+          icon="swap-horizontal"
+          label="Exercícios"
+          onPress={() => navigation.navigate('Exercicios')}
+        />
+      </View>
+
       <View style={styles.controls}>
         <Searchbar
           placeholder="Buscar treino"
@@ -103,13 +117,37 @@ export function WorkoutsScreen() {
   );
 }
 
+function Shortcut({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: string;
+  label: string;
+  onPress: () => void;
+}) {
+  const { tokens } = useAppTheme();
+  return (
+    <TouchableRipple
+      onPress={onPress}
+      style={[styles.shortcut, { backgroundColor: tokens.surface.card }]}
+      borderless
+    >
+      <View style={styles.shortcutInner}>
+        <Icon source={icon} size={touch.glyph} color={tokens.accent.base} />
+        <Text style={[styles.shortcutLabel, { color: tokens.text.primary }]}>{label}</Text>
+      </View>
+    </TouchableRipple>
+  );
+}
+
 function WorkoutRow({ workout, onPress }: { workout: Row; onPress: () => void }) {
   const { tokens } = useAppTheme();
   return (
     <TouchableRipple onPress={onPress} style={[styles.row, { backgroundColor: tokens.surface.card }]}>
       <View style={styles.rowInner}>
         <View style={[styles.rowIcon, { backgroundColor: tokens.surface.sunken }]}>
-          <Icon source={workout.icon} size={20} color={tokens.accent.base} />
+          <Icon source={workout.icon} size={touch.glyph} color={tokens.accent.base} />
         </View>
         <View style={styles.rowInfo}>
           <Text style={[styles.rowName, { color: tokens.text.primary }]} numberOfLines={1}>
@@ -119,7 +157,7 @@ function WorkoutRow({ workout, onPress }: { workout: Row; onPress: () => void })
             {workout.level}
           </Text>
         </View>
-        <Icon source="chevron-right" size={20} color={tokens.text.muted} />
+        <Icon source="chevron-right" size={touch.chevron} color={tokens.text.muted} />
       </View>
     </TouchableRipple>
   );
@@ -128,14 +166,37 @@ function WorkoutRow({ workout, onPress }: { workout: Row; onPress: () => void })
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  shortcuts: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  shortcut: { flex: 1, borderRadius: radius.md },
+  shortcutInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    minHeight: touch.min,
+  },
+  shortcutLabel: { fontSize: fontSize.sm, fontWeight: '600' },
+
   controls: { paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
   search: { borderRadius: radius.md },
   list: { paddingHorizontal: spacing.lg, paddingBottom: 96, gap: spacing.sm },
   row: { borderRadius: radius.lg },
-  rowInner: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md },
+  rowInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+    minHeight: touch.min,
+  },
   rowIcon: {
-    width: 44,
-    height: 44,
+    width: touch.circle,
+    height: touch.circle,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',

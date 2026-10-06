@@ -5,9 +5,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Text, Icon, TouchableRipple, ActivityIndicator } from 'react-native-paper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, StatusBadge, Card, EmptyState, ErrorState, type Tone } from '../components/ui';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
-import { getStudent, getStudentInsights } from '../api/endpoints';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
+import { getStudent, getStudentInsights, getRenewalAlertDays } from '../api/endpoints';
 import { ageFrom } from '../lib/format';
+import { renewalStatus, renewalLabel, DEFAULT_RENEWAL_ALERT_DAYS, type RenewalStatus } from '../lib/renewals';
+import { buildSessionMessage, waMeLink } from '../lib/whatsapp';
 import { sampleStudents, type SampleStudent, type StudentStatus } from '../data/sample';
 import type { Student } from '../types/database';
 import type { AlunosStackParamList } from '../navigation/types';
@@ -20,7 +22,10 @@ const STATUS_META: Record<StudentStatus, { label: string; tone: Tone }> = {
   inactive: { label: 'Inativo', tone: 'neutral' },
 };
 
+/** `route` preenchido = seção já implementada; sem route = "em breve". */
 const ACTIONS = [
+  { key: 'progresso', label: 'Progresso', icon: 'chart-line', route: 'AlunoProgresso' },
+  { key: 'cargas', label: 'Cargas', icon: 'weight-lifter', route: 'AlunoCargas' },
   { key: 'anamnese', label: 'Anamnese', icon: 'clipboard-text-outline' },
   { key: 'avaliacoes', label: 'Avaliações', icon: 'chart-box-outline' },
   { key: 'fotos', label: 'Fotos', icon: 'image-multiple-outline' },
@@ -39,6 +44,7 @@ type DetailView = {
   phone?: string;
   objective?: string;
   restrictions?: string;
+  subscriptionEnd?: string | null;
 };
 
 function fromStudent(s: Student): DetailView {
@@ -57,6 +63,7 @@ function fromStudent(s: Student): DetailView {
     phone: s.whatsapp || undefined,
     objective: s.objective ?? undefined,
     restrictions: s.restrictions ?? s.injuries ?? undefined,
+    subscriptionEnd: s.subscription_end,
   };
 }
 
@@ -85,6 +92,8 @@ export function AlunoDetalheScreen({ route, navigation }: Props) {
   const [iaText, setIaText] = useState<string | null>(null);
   const [iaLoading, setIaLoading] = useState(false);
   const [iaError, setIaError] = useState<string | null>(null);
+  // Janela do alerta de vencimento: parametrizável em Configurações, não fixa aqui.
+  const [alertDays, setAlertDays] = useState(DEFAULT_RENEWAL_ALERT_DAYS);
 
   const generateInsights = async () => {
     setIaLoading(true);
@@ -103,6 +112,11 @@ export function AlunoDetalheScreen({ route, navigation }: Props) {
     useCallback(() => {
       let alive = true;
       (async () => {
+        getRenewalAlertDays()
+          .then((days) => {
+            if (alive) setAlertDays(days);
+          })
+          .catch(() => {});
         try {
           const real = await getStudent(studentId);
           if (alive) setStudent(fromStudent(real));
@@ -138,10 +152,23 @@ export function AlunoDetalheScreen({ route, navigation }: Props) {
   }
 
   const meta = STATUS_META[student.status];
+  const renewal: RenewalStatus = renewalStatus(student.subscriptionEnd, alertDays);
+  const renewalText = renewalLabel(renewal);
+
+  /**
+   * Abre o WhatsApp com um texto já montado (lib/whatsapp). Não é envio
+   * automático: o personal revisa e dispara no app dele.
+   */
   const openWhatsApp = () => {
-    const num = (student.phone ?? '').replace(/\D/g, '');
-    if (!num) return Alert.alert('WhatsApp', 'Sem número cadastrado.');
-    Linking.openURL(`https://wa.me/55${num}`).catch(() =>
+    const now = new Date();
+    const message = buildSessionMessage({
+      studentName: student.name,
+      date: `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}`,
+      time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
+    });
+    const link = waMeLink(student.phone, message);
+    if (!link) return Alert.alert('WhatsApp', 'Sem número válido cadastrado.');
+    Linking.openURL(link).catch(() =>
       Alert.alert('WhatsApp', 'Não foi possível abrir o WhatsApp.')
     );
   };
@@ -155,6 +182,32 @@ export function AlunoDetalheScreen({ route, navigation }: Props) {
       />
 
       <ScrollView contentContainerStyle={styles.content}>
+        {renewalText && (
+          <View
+            style={[
+              styles.renewalBanner,
+              {
+                backgroundColor:
+                  renewal.kind === 'expired' ? tokens.danger.subtle : tokens.warning.subtle,
+              },
+            ]}
+          >
+            <Icon
+              source="calendar-alert"
+              size={20}
+              color={renewal.kind === 'expired' ? tokens.danger.base : tokens.warning.base}
+            />
+            <Text
+              style={[
+                styles.renewalText,
+                { color: renewal.kind === 'expired' ? tokens.danger.base : tokens.warning.base },
+              ]}
+            >
+              Ficha do aluno: {renewalText.toLowerCase()} (alerta de {alertDays} dias)
+            </Text>
+          </View>
+        )}
+
         <View style={styles.actionsTop}>
           <TouchableRipple
             onPress={openWhatsApp}
@@ -199,13 +252,17 @@ export function AlunoDetalheScreen({ route, navigation }: Props) {
           {ACTIONS.map((a) => (
             <TouchableRipple
               key={a.key}
-              onPress={() => Alert.alert(a.label, 'Seção em breve.')}
+              onPress={() =>
+                'route' in a && a.route
+                  ? navigation.navigate(a.route, { studentId, studentName: student.name })
+                  : Alert.alert(a.label, 'Seção em breve.')
+              }
               style={[styles.gridItem, { backgroundColor: tokens.surface.card }]}
               borderless
             >
               <View style={styles.gridInner}>
                 <View style={[styles.gridIcon, { backgroundColor: tokens.surface.sunken }]}>
-                  <Icon source={a.icon} size={20} color={tokens.accent.base} />
+                  <Icon source={a.icon} size={touch.glyph} color={tokens.accent.base} />
                 </View>
                 <Text style={[styles.gridLabel, { color: tokens.text.primary }]}>{a.label}</Text>
               </View>
@@ -216,7 +273,7 @@ export function AlunoDetalheScreen({ route, navigation }: Props) {
         <Card style={styles.iaCard}>
           <View style={styles.iaHeader}>
             <View style={[styles.gridIcon, { backgroundColor: tokens.surface.sunken }]}>
-              <Icon source="robot-outline" size={20} color={tokens.accent.base} />
+              <Icon source="robot-outline" size={touch.glyph} color={tokens.accent.base} />
             </View>
             <View style={styles.iaText}>
               <Text style={[styles.iaTitle, { color: tokens.text.primary }]}>Insights com IA</Text>
@@ -289,9 +346,18 @@ const styles = StyleSheet.create({
   center: { alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
 
+  renewalBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.md,
+  },
+  renewalText: { flex: 1, fontSize: fontSize.sm, fontWeight: '600' },
+
   actionsTop: { flexDirection: 'row', gap: spacing.sm },
-  primaryBtn: { flex: 1, borderRadius: radius.md, paddingVertical: spacing.md },
-  outlineBtn: { flex: 1, borderRadius: radius.md, paddingVertical: spacing.md, borderWidth: 1 },
+  primaryBtn: { flex: 1, borderRadius: radius.md, paddingVertical: spacing.lg, minHeight: touch.min },
+  outlineBtn: { flex: 1, borderRadius: radius.md, paddingVertical: spacing.lg, minHeight: touch.min, borderWidth: 1 },
   btnInner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   btnText: { fontSize: fontSize.md, fontWeight: '600' },
 
@@ -322,6 +388,6 @@ const styles = StyleSheet.create({
   iaText: { flex: 1, gap: 2 },
   iaTitle: { fontSize: fontSize.md, fontWeight: '600' },
   iaSubtitle: { fontSize: fontSize.sm },
-  iaBtn: { borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
+  iaBtn: { borderRadius: radius.md, paddingVertical: spacing.lg, minHeight: touch.min, alignItems: 'center' },
   iaResult: { fontSize: fontSize.sm, lineHeight: 20 },
 });

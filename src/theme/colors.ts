@@ -70,15 +70,31 @@ export const radius = {
   pill: 999,
 } as const;
 
+// Escala tipográfica. Subiu um degrau em relação à versão inicial para dar
+// leitura confortável em uso na academia (celular na mão, luz forte, pressa).
+// É escala, não redesenho: os mesmos slots, só maiores.
 export const fontSize = {
-  xs: 12,
-  sm: 14,
-  md: 16,
-  lg: 20,
-  xl: 28,
-  xxl: 34, // números grandes dos cards de métrica
+  xs: 13, // badges, rótulos da barra de navegação
+  sm: 15, // subtítulos, datas, descrições
+  md: 18, // corpo, título de card/linha de lista
+  lg: 22, // títulos de seção
+  xl: 30, // títulos de tela
+  xxl: 38, // números grandes dos cards de métrica
+} as const;
+
+/**
+ * Dimensões de elementos interativos. `min` é o piso de área de toque de
+ * qualquer botão ou item de lista (Material/HIG pedem 44–48dp).
+ */
+export const touch = {
+  min: 48, // altura mínima de botão / linha tocável
+  circle: 48, // círculo de ícone em linhas de lista
+  glyph: 24, // ícone dentro do círculo
+  chevron: 24, // affordance de navegação à direita
+  tabIcon: 26, // ícone da barra inferior
 } as const;
 
 export type Spacing = typeof spacing;
 export type Radius = typeof radius;
 export type FontSize = typeof fontSize;
+export type Touch = typeof touch;

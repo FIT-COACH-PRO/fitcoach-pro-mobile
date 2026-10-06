@@ -5,7 +5,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Searchbar, TouchableRipple, Text, Icon, FAB, ActivityIndicator } from 'react-native-paper';
 import { ScreenHeader, Avatar, StatusBadge, EmptyState, type Tone } from '../components/ui';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 import { listStudents } from '../api/endpoints';
 import { sampleStudents, type StudentStatus } from '../data/sample';
 import type { Student } from '../types/database';
@@ -176,7 +176,7 @@ function StudentRow({
           </Text>
         </View>
         <StatusBadge label={meta.label} tone={meta.tone} />
-        <Icon source="chevron-right" size={20} color={tokens.text.muted} />
+        <Icon source="chevron-right" size={touch.chevron} color={tokens.text.muted} />
       </View>
     </TouchableRipple>
   );
@@ -189,8 +189,10 @@ const styles = StyleSheet.create({
   search: { borderRadius: radius.md },
   chips: { flexDirection: 'row', gap: spacing.sm },
   chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    minHeight: touch.min,
+    justifyContent: 'center',
     borderRadius: radius.pill,
     borderWidth: 1,
   },
@@ -203,6 +205,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     padding: spacing.md,
+    minHeight: touch.min,
   },
   rowInfo: { flex: 1, gap: 2 },
   rowName: { fontSize: fontSize.md, fontWeight: '600' },

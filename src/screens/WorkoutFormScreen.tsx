@@ -5,7 +5,7 @@ import { TextInput, Text, TouchableRipple, Icon } from 'react-native-paper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, ErrorState } from '../components/ui';
 import { createWorkout, listStudents, type WorkoutDayInput } from '../api/endpoints';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 import type { TreinosStackParamList } from '../navigation/types';
 import type { Student, Workout } from '../types/database';
 
@@ -198,7 +198,7 @@ export function WorkoutFormScreen({ navigation }: Props) {
                   />
                   {day.exercises.length > 1 && (
                     <TouchableRipple onPress={() => removeExercise(di, ei)} style={styles.iconBtn} borderless>
-                      <Icon source="close" size={20} color={tokens.text.muted} />
+                      <Icon source="close" size={touch.chevron} color={tokens.text.muted} />
                     </TouchableRipple>
                   )}
                 </View>
@@ -277,8 +277,10 @@ const styles = StyleSheet.create({
   fieldLabel: { fontSize: fontSize.sm, fontWeight: '600', marginTop: spacing.sm, marginBottom: spacing.xs },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.sm },
   chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    minHeight: touch.min,
+    justifyContent: 'center',
     borderRadius: radius.pill,
     borderWidth: 1,
   },
@@ -309,7 +311,8 @@ const styles = StyleSheet.create({
 
   submit: {
     borderRadius: radius.md,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
+    minHeight: touch.min,
     alignItems: 'center',
     marginTop: spacing.md,
   },

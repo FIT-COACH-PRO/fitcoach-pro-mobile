@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { TextInput, Text, TouchableRipple, ActivityIndicator } from 'react-native-paper';
+import { TextInput, Text, TouchableRipple, ActivityIndicator, Icon } from 'react-native-paper';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenHeader, ErrorState } from '../components/ui';
 import { getProfile, updateProfile } from '../api/endpoints';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { requestCalendarPermission } from '../lib/calendar';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 import type { MaisStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<MaisStackParamList, 'PerfilForm'>;
@@ -22,6 +23,10 @@ export function PerfilFormScreen({ navigation }: Props) {
   const [uf, setUf] = useState('');
   const [bio, setBio] = useState('');
   const [emailRO, setEmailRO] = useState('');
+  const [connections, setConnections] = useState<Record<ConnectionId, boolean>>({
+    appleCalendar: false,
+    whatsapp: false,
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +55,36 @@ export function PerfilFormScreen({ navigation }: Props) {
       alive = false;
     };
   }, []);
+
+  /**
+   * Calendário Apple: a conexão é a permissão de calendário do sistema — no
+   * iOS, o app do calendário é o próprio Apple Calendar.
+   */
+  const connectAppleCalendar = async () => {
+    try {
+      const granted = await requestCalendarPermission();
+      setConnections((c) => ({ ...c, appleCalendar: granted }));
+      if (!granted) {
+        Alert.alert(
+          'Calendário Apple',
+          'Permissão negada. Libere o acesso ao calendário nos ajustes do aparelho.'
+        );
+      }
+    } catch {
+      Alert.alert('Calendário Apple', 'Não foi possível acessar o calendário.');
+    }
+  };
+
+  /**
+   * WhatsApp: habilita o envio direto de mensagem ao aluno (botão na tela do
+   * aluno). Não há automação de notificação por ora — só o disparo manual.
+   */
+  const connectWhatsApp = () => {
+    if (!whatsapp.trim()) {
+      return Alert.alert('WhatsApp', 'Preencha o seu WhatsApp acima antes de conectar.');
+    }
+    setConnections((c) => ({ ...c, whatsapp: true }));
+  };
 
   const onSubmit = async () => {
     const name = fullName.trim();
@@ -157,6 +192,23 @@ export function PerfilFormScreen({ navigation }: Props) {
             style={[styles.input, styles.multiline]}
           />
 
+          <Text style={[styles.sectionTitle, { color: tokens.text.primary }]}>Conexões</Text>
+
+          <ConnectionRow
+            icon="apple"
+            name="Calendário Apple"
+            description="Sincroniza a sua agenda pessoal com os compromissos do app."
+            connected={connections.appleCalendar}
+            onConnect={connectAppleCalendar}
+          />
+          <ConnectionRow
+            icon="whatsapp"
+            name="WhatsApp"
+            description="Habilita o envio direto de mensagem ao aluno."
+            connected={connections.whatsapp}
+            onConnect={connectWhatsApp}
+          />
+
           {error && <ErrorState message={error} />}
 
           <TouchableRipple
@@ -175,6 +227,65 @@ export function PerfilFormScreen({ navigation }: Props) {
   );
 }
 
+/**
+ * Uma conexão externa do personal. Google Agenda foi retirado: o calendário do
+ * aparelho (Apple) já cobre a sincronização da agenda pessoal.
+ */
+type ConnectionId = 'appleCalendar' | 'whatsapp';
+
+function ConnectionRow({
+  icon,
+  name,
+  description,
+  connected,
+  onConnect,
+}: {
+  icon: string;
+  name: string;
+  description: string;
+  connected: boolean;
+  onConnect: () => void;
+}) {
+  const { tokens } = useAppTheme();
+
+  return (
+    <View style={[styles.connection, { backgroundColor: tokens.surface.card }]}>
+      <View style={[styles.connectionIcon, { backgroundColor: tokens.surface.sunken }]}>
+        <Icon source={icon} size={touch.glyph} color={tokens.accent.base} />
+      </View>
+
+      <View style={styles.connectionText}>
+        <Text style={[styles.connectionName, { color: tokens.text.primary }]}>{name}</Text>
+        <Text style={[styles.connectionDesc, { color: tokens.text.secondary }]}>
+          {description}
+        </Text>
+      </View>
+
+      <TouchableRipple
+        onPress={onConnect}
+        disabled={connected}
+        style={[
+          styles.connectBtn,
+          {
+            backgroundColor: connected ? tokens.success.subtle : tokens.accent.base,
+          },
+        ]}
+        borderless
+        accessibilityLabel={connected ? `${name} conectado` : `Conectar ${name}`}
+      >
+        <Text
+          style={[
+            styles.connectText,
+            { color: connected ? tokens.success.base : tokens.text.onAccent },
+          ]}
+        >
+          {connected ? 'Conectado' : 'Conectar'}
+        </Text>
+      </TouchableRipple>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -185,9 +296,38 @@ const styles = StyleSheet.create({
   cityItem: { flex: 1 },
   ufItem: { width: 88 },
 
+  sectionTitle: { fontSize: fontSize.lg, fontWeight: '700', marginTop: spacing.lg },
+  connection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    marginBottom: spacing.sm,
+    minHeight: touch.min,
+  },
+  connectionIcon: {
+    width: touch.circle,
+    height: touch.circle,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  connectionText: { flex: 1, gap: 2 },
+  connectionName: { fontSize: fontSize.md, fontWeight: '600' },
+  connectionDesc: { fontSize: fontSize.sm },
+  connectBtn: {
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.lg,
+    justifyContent: 'center',
+    minHeight: touch.min,
+  },
+  connectText: { fontSize: fontSize.sm, fontWeight: '700' },
+
   submit: {
     borderRadius: radius.md,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
+    minHeight: touch.min,
     alignItems: 'center',
     marginTop: spacing.md,
   },

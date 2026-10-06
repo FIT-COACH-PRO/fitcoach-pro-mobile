@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { View, StyleSheet, ScrollView, ViewStyle, StyleProp } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Icon, TouchableRipple } from 'react-native-paper';
-import { useAppTheme, spacing, radius, fontSize } from '../theme';
+import { useAppTheme, spacing, radius, fontSize, touch } from '../theme';
 
 /** Container de tela: fundo do tema + respeito ao safe-area no topo. */
 export function Screen({
@@ -59,7 +59,7 @@ export function ScreenHeader({
             borderless
             accessibilityLabel="Voltar"
           >
-            <Icon source="chevron-left" size={26} color={tokens.text.primary} />
+            <Icon source="chevron-left" size={28} color={tokens.text.primary} />
           </TouchableRipple>
         )}
         <View style={styles.headerText}>
@@ -82,7 +82,7 @@ export function ScreenHeader({
 export function Avatar({
   name,
   color,
-  size = 40,
+  size = touch.circle,
 }: {
   name: string;
   color: string;
@@ -163,7 +163,7 @@ export function EmptyState({
   return (
     <View style={styles.stateBox}>
       <View style={[styles.stateIcon, { backgroundColor: tokens.surface.sunken }]}>
-        <Icon source={icon} size={24} color={tokens.text.secondary} />
+        <Icon source={icon} size={28} color={tokens.text.secondary} />
       </View>
       <Text style={[styles.stateTitle, { color: tokens.text.primary }]}>{title}</Text>
       {subtitle && (
@@ -200,7 +200,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: spacing.xs },
-  backBtn: { borderRadius: radius.pill, padding: 2, marginLeft: -4 },
+  backBtn: {
+    borderRadius: radius.pill,
+    width: touch.min,
+    height: touch.min,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -spacing.md,
+  },
   headerText: { flex: 1, gap: 2 },
   headerTitle: { fontSize: fontSize.xl, fontWeight: '700' },
   headerSubtitle: { fontSize: fontSize.sm },
@@ -210,7 +217,7 @@ const styles = StyleSheet.create({
 
   badge: {
     paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: radius.pill,
     alignSelf: 'flex-start',
   },
@@ -220,8 +227,8 @@ const styles = StyleSheet.create({
 
   stateBox: { alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.sm },
   stateIcon: {
-    width: 48,
-    height: 48,
+    width: 56,
+    height: 56,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
@@ -237,6 +244,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
   },
   errorText: { flex: 1, fontSize: fontSize.sm },
-  retryBtn: { paddingHorizontal: spacing.sm, paddingVertical: 2 },
+  retryBtn: {
+    paddingHorizontal: spacing.md,
+    justifyContent: 'center',
+    minHeight: touch.min,
+  },
   retryText: { fontSize: fontSize.sm, fontWeight: '600' },
 });
